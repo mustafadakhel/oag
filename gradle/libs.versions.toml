@@ -1,0 +1,42 @@
+[versions]
+kotlin = "2.2.20"
+kotlinx-serialization = "1.9.0"
+kotaml = "0.106.0"
+opentelemetry = "1.52.0"
+bouncycastle = "1.80"
+coroutines = "1.10.1"
+onnxruntime = "1.17.3"
+djl = "0.30.0"
+junit-params = "5.11.4"
+shadow = "8.3.5"
+foojay = "0.8.0"
+
+[libraries]
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotaml = { module = "io.heapy.kotaml:kotaml", version.ref = "kotaml" }
+opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "opentelemetry" }
+opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api" }
+opentelemetry-context = { module = "io.opentelemetry:opentelemetry-context" }
+opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
+opentelemetry-sdk-logs = { module = "io.opentelemetry:opentelemetry-sdk-logs" }
+opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp" }
+opentelemetry-exporter-logging = { module = "io.opentelemetry:opentelemetry-exporter-logging" }
+opentelemetry-sdk-testing = { module = "io.opentelemetry:opentelemetry-sdk-testing" }
+
+bouncycastle-prov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
+
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+
+onnxruntime = { module = "com.microsoft.onnxruntime:onnxruntime", version.ref = "onnxruntime" }
+djl-api = { module = "ai.djl:api", version.ref = "djl" }
+djl-tokenizers = { module = "ai.djl.huggingface:tokenizers", version.ref = "djl" }
+
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit-params" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+foojay = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay" }

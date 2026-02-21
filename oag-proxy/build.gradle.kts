@@ -1,0 +1,28 @@
+dependencies {
+    api(project(":oag-pipeline"))
+    implementation(project(":oag-core"))
+    implementation(project(":oag-policy"))
+    implementation(project(":oag-inspection"))
+    implementation(project(":oag-enforcement"))
+    implementation(project(":oag-audit"))
+    implementation(project(":oag-secrets"))
+    implementation(project(":oag-telemetry"))
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bouncycastle.prov)
+    implementation(libs.bouncycastle.pkix)
+    implementation(libs.coroutines.core)
+    implementation(platform(libs.opentelemetry.bom))
+    implementation(libs.opentelemetry.api)
+    implementation(libs.opentelemetry.context)
+
+    compileOnly(libs.onnxruntime)
+    compileOnly(libs.djl.api)
+    compileOnly(libs.djl.tokenizers)
+
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.onnxruntime)
+    testImplementation(libs.djl.api)
+    testImplementation(libs.djl.tokenizers)
+    testImplementation(platform(libs.opentelemetry.bom))
+    testImplementation(libs.opentelemetry.sdk.testing)
+}
