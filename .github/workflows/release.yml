@@ -139,4 +139,5 @@ jobs:
         if: ${{ startsWith(github.ref_name, 'v0') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: gh release edit "${{ github.ref_name }}" --draft=false --prerelease
