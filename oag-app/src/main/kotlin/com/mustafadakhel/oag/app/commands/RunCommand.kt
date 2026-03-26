@@ -104,13 +104,13 @@ private fun ParsedArgs.buildTlsConfig(): ProxyTlsConfig = ProxyTlsConfig(
     caCertPath = value(CliFlags.TLS_CA_CERT_PATH),
     mtlsCaCertPath = value(CliFlags.MTLS_CA_CERT),
     mtlsKeystorePath = value(CliFlags.MTLS_KEYSTORE),
-    mtlsKeystorePassword = value(CliFlags.MTLS_KEYSTORE_PASSWORD)
+    mtlsKeystorePassword = value(CliFlags.MTLS_KEYSTORE_PASSWORD) ?: System.getenv("OAG_MTLS_KEYSTORE_PASSWORD")
 )
 
 private fun ParsedArgs.buildAdminConfig(): ProxyAdminConfig = ProxyAdminConfig(
     port = optionalInt(CliFlags.ADMIN_PORT),
     allowedIps = commaSeparatedList(CliFlags.ADMIN_ALLOWED_IPS),
-    token = value(CliFlags.ADMIN_TOKEN),
+    token = value(CliFlags.ADMIN_TOKEN) ?: System.getenv("OAG_ADMIN_TOKEN"),
     reloadCooldownMs = longValue(CliFlags.ADMIN_RELOAD_COOLDOWN_MS, ProxyDefaults.ADMIN_RELOAD_COOLDOWN_MS.toLong())
 )
 
