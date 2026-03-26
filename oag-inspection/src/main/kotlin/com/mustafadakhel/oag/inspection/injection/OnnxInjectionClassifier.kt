@@ -9,20 +9,21 @@ import java.nio.LongBuffer
 class OnnxInjectionClassifier(
     private val session: OrtSession,
     private val maxLength: Int = DEFAULT_MAX_LENGTH,
-    private val confidenceThreshold: Double = DEFAULT_CONFIDENCE_THRESHOLD
+    private val confidenceThreshold: Double = DEFAULT_CONFIDENCE_THRESHOLD,
+    private val tokenizer: Tokenizer = CharCodeTokenizer()
 ) : InjectionClassifier, AutoCloseable {
 
     override fun classify(content: String): ClassificationResult {
-        val tokenIds = tokenize(content)
+        val encoding = tokenizer.encode(content, maxLength)
         val inputTensor = OnnxTensor.createTensor(
             OrtEnvironment.getEnvironment(),
-            LongBuffer.wrap(tokenIds),
-            longArrayOf(1, tokenIds.size.toLong())
+            LongBuffer.wrap(encoding.ids),
+            longArrayOf(1, encoding.ids.size.toLong())
         )
         val attentionMask = OnnxTensor.createTensor(
             OrtEnvironment.getEnvironment(),
-            LongBuffer.wrap(LongArray(tokenIds.size) { 1L }),
-            longArrayOf(1, tokenIds.size.toLong())
+            LongBuffer.wrap(encoding.attentionMask),
+            longArrayOf(1, encoding.attentionMask.size.toLong())
         )
         val inputs = mapOf(INPUT_IDS to inputTensor, ATTENTION_MASK to attentionMask)
         val output = session.run(inputs)
@@ -40,15 +41,6 @@ class OnnxInjectionClassifier(
         session.close()
     }
 
-    private fun tokenize(text: String): LongArray {
-        val tokens = mutableListOf(CLS_TOKEN_ID)
-        for (char in text.take(maxLength)) {
-            tokens.add(char.code.toLong())
-        }
-        tokens.add(SEP_TOKEN_ID)
-        return tokens.toLongArray()
-    }
-
     companion object {
         const val SOURCE = "onnx"
         const val DEFAULT_MAX_LENGTH = 512
@@ -56,18 +48,17 @@ class OnnxInjectionClassifier(
 
         private const val INPUT_IDS = "input_ids"
         private const val ATTENTION_MASK = "attention_mask"
-        private const val CLS_TOKEN_ID = 101L
-        private const val SEP_TOKEN_ID = 102L
 
         fun createOrNull(
             modelPath: String,
             maxLength: Int = DEFAULT_MAX_LENGTH,
             confidenceThreshold: Double = DEFAULT_CONFIDENCE_THRESHOLD,
+            tokenizer: Tokenizer = CharCodeTokenizer(),
             onError: (String) -> Unit = {}
         ): OnnxInjectionClassifier? = runCatching {
             val env = OrtEnvironment.getEnvironment()
             val session = env.createSession(modelPath)
-            OnnxInjectionClassifier(session, maxLength, confidenceThreshold)
+            OnnxInjectionClassifier(session, maxLength, confidenceThreshold, tokenizer)
         }.onFailure { e ->
             onError("ONNX classifier creation failed: ${e.message}")
         }.getOrNull()

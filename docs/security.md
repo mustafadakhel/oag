@@ -92,12 +92,12 @@ defaults:
   ml_classifier:
     enabled: true
     model_path: /models/deberta-injection.onnx
-    tokenizer_path: /models/tokenizer.json   # parsed but not used at runtime (reserved for future use)
+    tokenizer_path: /models/tokenizer.json   # loads HuggingFace tokenizer when DJL is on classpath
     confidence_threshold: 0.8
     max_length: 512
 ```
 
-Requires ONNX Runtime on classpath (not bundled). Tokenization uses raw char-code encoding internally — no external tokenizer library (e.g., DJL HuggingFace Tokenizers) is required or used. Silently disabled if unavailable. Combined score = max(heuristic, ML). Set `trigger_mode: uncertain_only` to skip ML inference when the heuristic score is already decisive (outside the `uncertain_low`/`uncertain_high` band), reducing latency on high-throughput deployments.
+Requires ONNX Runtime on classpath (not bundled). When `tokenizer_path` is set and DJL HuggingFace Tokenizers is on the classpath, OAG uses proper subword tokenization matching the model's training vocabulary. Without DJL, falls back to raw char-code encoding. The tokenizer and model must match — a model trained with WordPiece tokenization requires the corresponding `tokenizer.json`. Silently disabled if ONNX Runtime is unavailable. Combined score = max(heuristic, ML). Set `trigger_mode: uncertain_only` to skip ML inference when the heuristic score is already decisive (outside the `uncertain_low`/`uncertain_high` band), reducing latency on high-throughput deployments.
 
 ### Per-Rule Overrides
 

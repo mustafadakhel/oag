@@ -7,11 +7,14 @@ import com.mustafadakhel.oag.pipeline.buildRequestExceptionHandler
 import com.mustafadakhel.oag.pipeline.HandlerConfig
 import com.mustafadakhel.oag.pipeline.Pipeline
 import com.mustafadakhel.oag.pipeline.RequestPath
+import com.mustafadakhel.oag.inspection.injection.CharCodeTokenizer
 import com.mustafadakhel.oag.inspection.injection.CombinedInjectionClassifier
+import com.mustafadakhel.oag.inspection.injection.DjlHuggingFaceTokenizer
 import com.mustafadakhel.oag.inspection.injection.HeuristicInjectionClassifier
 import com.mustafadakhel.oag.inspection.injection.InjectionClassifier
 import com.mustafadakhel.oag.inspection.injection.MlTriggerMode
 import com.mustafadakhel.oag.inspection.injection.OnnxInjectionClassifier
+import com.mustafadakhel.oag.inspection.injection.Tokenizer
 import com.mustafadakhel.oag.inspection.spi.DetectorRegistry
 import com.mustafadakhel.oag.pipeline.RequestRelay
 import com.mustafadakhel.oag.pipeline.WebhookCallback
@@ -119,13 +122,24 @@ internal fun buildFullProxyHandler(
     val mlClassifier: InjectionClassifier? = policyService.current.defaults?.mlClassifier?.let { mlConfig ->
         val modelPath = mlConfig.modelPath
         if (mlConfig.enabled != true || modelPath == null) return@let null
-        if (mlConfig.tokenizerPath != null) {
-            debugLogger.log("ml_classifier.tokenizer_path is configured but not used at runtime; OAG uses raw char-code tokenization")
+        val tokenizerPath = mlConfig.tokenizerPath
+        val tokenizer: Tokenizer = if (tokenizerPath != null && DjlHuggingFaceTokenizer.isAvailable()) {
+            DjlHuggingFaceTokenizer.createOrNull(tokenizerPath, onError = debugLogger::log)
+                ?: run {
+                    debugLogger.log("DJL tokenizer failed to load from $tokenizerPath, falling back to char-code tokenization")
+                    CharCodeTokenizer()
+                }
+        } else {
+            if (tokenizerPath != null) {
+                debugLogger.log("ml_classifier.tokenizer_path is set but DJL is not on classpath; using char-code tokenization")
+            }
+            CharCodeTokenizer()
         }
         val onnx = OnnxInjectionClassifier.createOrNull(
             modelPath = modelPath,
             maxLength = mlConfig.maxLength ?: OnnxInjectionClassifier.DEFAULT_MAX_LENGTH,
             confidenceThreshold = mlConfig.confidenceThreshold ?: OnnxInjectionClassifier.DEFAULT_CONFIDENCE_THRESHOLD,
+            tokenizer = tokenizer,
             onError = debugLogger::log
         ) ?: return@let null
         val triggerMode = when (mlConfig.triggerMode) {
