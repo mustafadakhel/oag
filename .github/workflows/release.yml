@@ -127,6 +127,7 @@ jobs:
         with:
           name: OAG ${{ github.ref_name }}
           generate_release_notes: true
+          draft: ${{ startsWith(github.ref_name, 'v0') }}
           prerelease: ${{ startsWith(github.ref_name, 'v0') }}
           files: |
             oag.jar
@@ -134,3 +135,8 @@ jobs:
             oag-macos-amd64
             oag-macos-arm64
             oag-windows-amd64.exe
+      - name: Publish prerelease draft
+        if: ${{ startsWith(github.ref_name, 'v0') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ github.ref_name }}" --draft=false --prerelease
