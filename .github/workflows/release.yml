@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 jobs:
-  release:
+  build_jar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,15 +25,13 @@ jobs:
         run: ./gradlew test
       - name: Prepare JAR
         run: cp oag-app/build/libs/*-all.jar oag.jar
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: OAG ${{ github.ref_name }}
-          generate_release_notes: true
-          files: oag.jar
+          name: oag-jar
+          path: oag.jar
 
   docker:
-    needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -107,7 +105,32 @@ jobs:
       - name: Rename binary
         run: cp "${{ matrix.binary }}" "${{ matrix.artifact }}${{ matrix.suffix }}"
         shell: bash
-      - name: Upload to release
+      - name: Upload native artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}${{ matrix.suffix }}
+
+  release:
+    needs: [build_jar, native]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: oag-*
+          path: .
+          merge-multiple: true
+          if-no-files-found: ignore
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ matrix.artifact }}${{ matrix.suffix }}
+          name: OAG ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ startsWith(github.ref_name, 'v0') }}
+          files: |
+            oag.jar
+            oag-linux-amd64
+            oag-macos-amd64
+            oag-macos-arm64
+            oag-windows-amd64.exe
