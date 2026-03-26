@@ -12,6 +12,7 @@ import com.mustafadakhel.oag.pipeline.HeaderState
 import com.mustafadakhel.oag.pipeline.HttpStatus
 import com.mustafadakhel.oag.pipeline.PhaseOutcome
 import com.mustafadakhel.oag.pipeline.RequestIdKey
+import com.mustafadakhel.oag.PipelineStage
 import com.mustafadakhel.oag.pipeline.GatePhase
 import com.mustafadakhel.oag.pipeline.MutationPhase
 import com.mustafadakhel.oag.pipeline.REQUEST_HOP_BY_HOP_HEADERS
@@ -55,7 +56,15 @@ class HeaderRewritesPhase : MutationPhase {
 
 class RequestIdPhase : MutationPhase {
     override val name = "request_id"
-    override fun mutate(context: RequestPipelineContext) = injectRequestIdPhase(context)
+    override val stage = PipelineStage.IDENTITY
+    override fun mutate(context: RequestPipelineContext) {
+        context.outputs.put(RequestIdKey, RequestId.generate())
+    }
+}
+
+class RequestIdHeaderPhase : MutationPhase {
+    override val name = "request_id_header"
+    override fun mutate(context: RequestPipelineContext) = injectRequestIdHeader(context)
 }
 
 private fun stripHopByHopHeaders(headers: Map<String, String>): MutableMap<String, String> =
@@ -124,9 +133,8 @@ fun applyHeaderRewritesPhase(context: RequestPipelineContext) {
     rewriteResult.auditEntries.ifEmpty { null }?.let { context.outputs.put(HeaderRewritesKey, it) }
 }
 
-fun injectRequestIdPhase(context: RequestPipelineContext) {
-    val requestId = RequestId.generate()
-    context.outputs.put(RequestIdKey, requestId)
+fun injectRequestIdHeader(context: RequestPipelineContext) {
+    val requestId = context.outputs.getOrNull(RequestIdKey) ?: return
     val updatedHeaders = context.headers.toMutableMap()
     updatedHeaders[context.config.requestId.requestIdHeader.lowercase(Locale.ROOT)] = requestId.value
     context.outputs.put(HeaderState, updatedHeaders)

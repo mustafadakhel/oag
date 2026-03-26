@@ -20,10 +20,11 @@ class HeaderPhaseTest {
     }
 
     @Test
-    fun `injectRequestIdPhase adds request id to headers`() {
+    fun `request id is generated and injected into headers`() {
         val context = buildTestContext()
+        RequestIdPhase().mutate(context)
         prepareHeaders(context)
-        injectRequestIdPhase(context)
+        injectRequestIdHeader(context)
 
         val requestId = context.outputs.getOrNull(RequestIdKey)
         assertNotNull(requestId)
