@@ -39,8 +39,7 @@ graalvmNative {
                 "--initialize-at-run-time=org.bouncycastle.jce.provider.BouncyCastleProvider",
                 "--initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG",
                 "--initialize-at-run-time=org.bouncycastle.crypto.prng.SP800SecureRandom",
-                "-H:+ReportExceptionStackTraces",
-                "-Os"
+                "-H:+ReportExceptionStackTraces"
             )
         }
     }
