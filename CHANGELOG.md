@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.1.6
+
+### Bug Fixes
+
+- Fix `isNonTrivial()` audit check to include plugin finding fields — previously, `content_inspection` was silently omitted from audit events when only plugin detectors fired
+- Generate request IDs at IDENTITY stage so denied requests get IDs in audit events — previously, request IDs were only assigned to allowed requests that reached the ACTIONS stage
+
+### Security
+
+- Add `OAG_ADMIN_TOKEN` environment variable as alternative to `--admin-token` CLI flag — keeps credentials out of the process list
+- Add `OAG_MTLS_KEYSTORE_PASSWORD` environment variable as alternative to `--mtls-keystore-password` CLI flag
+
+## 0.1.5
+
+### Features
+
+- ML classifier `trigger_mode` is now configurable via policy YAML (`always` or `uncertain_only`) with tunable `uncertain_low`/`uncertain_high` bounds
+- `tokenizer_path` now loads a HuggingFace tokenizer when DJL is on the classpath — falls back to char-code encoding when absent
+- Tokenizer interface (`Tokenizer`, `CharCodeTokenizer`, `DjlHuggingFaceTokenizer`) for pluggable tokenization in the ML classifier
+- Dockerfile with JRE-based image (temurin:21-jre-alpine)
+- Docker image publishing to ghcr.io in release workflow with semver tags
+- GraalVM native binary builds for Linux, macOS (x64/arm64), and Windows
+
+### Refactoring
+
+- Remove `TrafficUnit.AdminRequest` (unused dead code)
+- Add pipeline phase ordering validation (`producesKeys` on Phase interface)
+- Replace `PolicyCapability` sealed interface with `shouldNotifyWebhook` extension
+- Extract `ScopeMatching.kt` with shared scope matching and normalization functions
+- Extract `matchingNames` extension for `List<PatternEntry>`
+- Add `PolicyRetry.toRetryPolicy()` extension
+- Document `resolvedAgentId` three-source priority; rename `certificateIdentityProvider` to `extractCertificateIdentity`
+- Collapse `PipelineError` into `OagRequestException`
+
+### Documentation
+
+- Fix 44 doc-code alignment issues across all 10 documentation files
+- Fix broken `deny_threshold: 2.0` example in policy-examples.md
+- Fix index.md statistics (reason codes 17→32, admin endpoints 6→7, metrics 7→10)
+- Add missing fields to configuration.md (plugin detection, finding suppressions, webhook events)
+- Add distributed tracing section to observability.md
+- Add MkDocs with Material theme and GitHub Pages deployment
+- Add CONTRIBUTING.md
+- Add live-test artifacts (policies, test cases, performance report)
+- Update README to reflect all current features
+
 ## 0.1.0
 
 Initial release.
