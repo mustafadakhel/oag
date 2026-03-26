@@ -1,17 +1,31 @@
 # Changelog
 
-## E22-E26: Feature Delivery & Architecture Reconciliation
+## 0.1.0
 
-Features shipped across E22-E26 that were previously tracked in `future-features-plan.md`:
+Initial release.
 
-- **Finding suppression** — `PolicyFindingSuppression` in policy defaults and per-rule, wired in `ContentInspectionPhase`, `CredentialsPhase`, `DataClassificationPhase`, `PluginDetectionPhase`
-- **Response scanning via plugin SPI** — `ResponseCredentialDetector`, `ResponseSensitiveDataDetector` wired via `DetectorRegistry`, buffered and streaming paths
-- **WebSocket frame inspection** — `WebSocketInspector` with direction-aware scanning (injection, credentials, data classification, plugin detectors), close code 4403 on deny
-- **Token usage extraction** — `TokenUsageExtractor` in both buffered and streaming response paths, `TokenBudgetPhase` for per-session limits
-- **Response redaction** — `PolicyResponseRewrite.Redact` with regex replacement on buffered responses, content-length adjustment, plugin-driven redaction via `FindingRedactionKey`
+### Features
 
-Additional E26 work:
-- Pipeline stage cleanup (removed `CONTEXT_BUILD`, `RELAY`, `EMIT` stages)
-- Correct stage assignments for 20/30 phases
-- Removed unused `PolicyCapability` subtypes (`SecretInjection`, `Inspect`, `RateLimit`, `TlsInspect`, `Rewrite`, `ResponseControl`)
-- Removed `StageSet.RESPONSE`, `StageSet.WS_FRAME`, `StageSet.ADMIN`
+- Policy enforcement with deterministic deny-before-allow evaluation
+- HTTP/HTTPS forward proxy with CONNECT tunnel support
+- TLS interception (MITM) with ephemeral CA and per-host certificates
+- WebSocket frame relay with content inspection
+- Prompt injection detection with 6 pattern families and heuristic scoring
+- Optional ONNX-based ML classifier for injection detection
+- Outbound credential detection (AWS keys, GitHub PATs, JWTs, private keys, Slack tokens, API keys)
+- Sensitive data classification (PII, financial, credentials)
+- URL/DNS exfiltration guards with Shannon entropy analysis
+- Path traversal and double-encoding detection
+- Plugin SPI for custom detectors with finding suppression
+- Secret materialization with ENV, file, and OAuth2 providers
+- Connection pooling, circuit breakers, and token bucket rate limiting
+- Per-session data and token budget tracking
+- Structured audit logging (JSONL) with 8 event types
+- Rotating log files with optional GZIP compression
+- OpenTelemetry integration (audit logs and distributed tracing)
+- 10 Prometheus metrics
+- 7 admin API endpoints
+- Webhook notifications with HMAC signing
+- Policy bundles with Ed25519 signatures
+- Policy hot-reload via file watcher, SIGHUP, admin endpoint, and remote fetch
+- 11 CLI commands with JSON output mode
