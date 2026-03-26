@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.shadow) apply false
+    alias(libs.plugins.graalvm.native) apply false
 }
 
 val buildType: String by extra(
@@ -13,7 +14,7 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
 
     group = "com.mustafadakhel"
-    version = "1.0-SNAPSHOT"
+    version = findProperty("releaseVersion") as? String ?: "1.0-SNAPSHOT"
 
     repositories {
         mavenCentral()

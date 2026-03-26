@@ -1,0 +1,110 @@
+[
+  {
+    "name": "org.bouncycastle.jce.provider.BouncyCastleProvider",
+    "methods": [{"name": "<init>", "parameterTypes": []}],
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.rsa.KeyPairGeneratorSpi",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.rsa.KeyFactorySpi",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.rsa.DigestSignatureSpi$SHA256",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.edec.KeyPairGeneratorSpi$Ed25519",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.edec.KeyFactorySpi$Ed25519",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.edec.SignatureSpi$Ed25519",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.digest.SHA256$Digest",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.digest.SHA256$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.symmetric.AES$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi$BCPKCS12KeyStore",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.RSA$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.X509$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.asymmetric.EdEC$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.keystore.PKCS12$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.symmetric.PBEPBKDF2$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.symmetric.PBEPKCS12$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "org.bouncycastle.jcajce.provider.mac.HMAC$Mappings",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "sun.security.provider.SHA2$SHA256",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "sun.security.ssl.SSLContextImpl$TLSContext",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "sun.security.provider.certpath.PKIXCertPathValidator",
+    "methods": [{"name": "<init>", "parameterTypes": []}]
+  },
+  {
+    "name": "sun.misc.Signal",
+    "methods": [
+      {"name": "handle", "parameterTypes": ["sun.misc.Signal", "sun.misc.SignalHandler"]},
+      {"name": "<init>", "parameterTypes": ["java.lang.String"]}
+    ]
+  },
+  {
+    "name": "sun.misc.SignalHandler",
+    "allPublicMethods": true
+  },
+  {
+    "name": "java.net.HttpURLConnection",
+    "allPublicMethods": true
+  },
+  {
+    "name": "sun.net.www.protocol.https.HttpsURLConnectionImpl",
+    "allPublicMethods": true
+  }
+]

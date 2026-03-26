@@ -1,6 +1,7 @@
 plugins {
     application
     alias(libs.plugins.shadow)
+    alias(libs.plugins.graalvm.native)
 }
 
 dependencies {
@@ -21,4 +22,21 @@ application {
 
 tasks.shadowJar {
     archiveClassifier.set("all")
+}
+
+graalvmNative {
+    metadataRepository {
+        enabled.set(true)
+    }
+    binaries {
+        named("main") {
+            mainClass.set("com.mustafadakhel.oag.app.MainKt")
+            imageName.set("oag")
+            buildArgs.addAll(
+                "--no-fallback",
+                "--initialize-at-run-time=org.bouncycastle",
+                "-H:+ReportExceptionStackTraces"
+            )
+        }
+    }
 }
