@@ -1,0 +1,29 @@
+version: 1
+
+defaults:
+  action: DENY
+  max_body_bytes: 1048576
+  content_inspection:
+    enable_builtin_patterns: true
+  injection_scoring:
+    mode: SCORE
+    deny_threshold: 0.2
+  outbound_credential_detection: true
+  block_dns_exfiltration: true
+  enforce_dns_resolution: true
+  url_inspection:
+    max_query_length: 2048
+    max_url_length: 4096
+    block_base64_values: true
+    entropy_threshold: 4.5
+  data_classification:
+    enable_builtin_patterns: true
+
+allow:
+  - id: allow_httpbin
+    host: httpbin.org
+    methods: [GET, POST, PUT]
+
+  - id: allow_postman
+    host: postman-echo.com
+    methods: [GET, POST]

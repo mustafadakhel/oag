@@ -1,0 +1,54 @@
+cases:
+  - name: "httpbin GET allowed"
+    request: "GET https://httpbin.org/get"
+    expectAction: allow
+
+  - name: "httpbin POST allowed"
+    request: "POST https://httpbin.org/post"
+    expectAction: allow
+
+  - name: "httpbin DELETE allowed"
+    request: "DELETE https://httpbin.org/delete"
+    expectAction: allow
+
+  - name: "example.com GET allowed"
+    request: "GET https://example.com/"
+    expectAction: allow
+
+  - name: "example.com POST denied (method)"
+    request: "POST https://example.com/"
+    expectAction: deny
+
+  - name: "evil.com denied by rule"
+    request: "GET https://evil.com/"
+    expectAction: deny
+    expectReason: denied_by_rule
+
+  - name: "unknown host denied by default"
+    request: "GET https://unknown.host.xyz/"
+    expectAction: deny
+    expectReason: no_match_default_deny
+
+  - name: "jsonplaceholder GET allowed"
+    request: "GET https://jsonplaceholder.typicode.com/posts/1"
+    expectAction: allow
+
+  - name: "internal corp denied"
+    request: "GET https://test.internal.corp/api"
+    expectAction: deny
+    expectReason: denied_by_rule
+
+  - name: "admin path denied"
+    request: "GET https://sub.example.com/admin"
+    expectAction: deny
+    expectReason: denied_by_rule
+
+  - name: "admin subpath denied"
+    request: "GET https://sub.example.com/admin/users"
+    expectAction: deny
+    expectReason: denied_by_rule
+
+  - name: "secrets path denied"
+    request: "GET https://sub.example.com/api/secrets"
+    expectAction: deny
+    expectReason: denied_by_rule

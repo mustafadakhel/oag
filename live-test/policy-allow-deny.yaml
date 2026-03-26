@@ -1,0 +1,50 @@
+version: 1
+
+defaults:
+  action: DENY
+
+allow:
+  - id: allow_httpbin
+    host: httpbin.org
+    methods: [GET, POST, PUT, PATCH, DELETE]
+    rate_limit:
+      requests_per_second: 10
+      burst: 20
+
+  - id: allow_example
+    host: example.com
+    methods: [GET]
+
+  - id: allow_jsonplaceholder
+    host: jsonplaceholder.typicode.com
+    methods: [GET, POST]
+
+  - id: allow_postman_echo
+    host: postman-echo.com
+    methods: [GET, POST]
+
+deny:
+  - id: block_internal
+    host: "*.internal.corp"
+
+  - id: block_admin_paths
+    host: "*.example.com"
+    paths:
+      - /admin
+      - /admin/*
+    error_response:
+      status: 451
+      body: "Unavailable For Legal Reasons"
+      content_type: text/plain
+
+  - id: block_sensitive
+    host: "*.example.com"
+    paths:
+      - /api/secrets
+      - /api/keys
+
+  - id: block_evil
+    host: evil.com
+    tags:
+      - security
+      - blocked
