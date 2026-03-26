@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  fat-jar:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,28 +24,36 @@ jobs:
         run: ./gradlew test
       - name: Prepare JAR
         run: cp oag-app/build/libs/*-all.jar oag.jar
-      - uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: oag-jar
-          path: oag.jar
+          name: OAG ${{ github.ref_name }}
+          generate_release_notes: true
+          files: oag.jar
 
   native:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             artifact: oag-linux-amd64
             binary: oag-app/build/native/nativeCompile/oag
+            suffix: ""
           - os: macos-13
             artifact: oag-macos-amd64
             binary: oag-app/build/native/nativeCompile/oag
+            suffix: ""
           - os: macos-latest
             artifact: oag-macos-arm64
             binary: oag-app/build/native/nativeCompile/oag
+            suffix: ""
           - os: windows-latest
             artifact: oag-windows-amd64
             binary: oag-app/build/native/nativeCompile/oag.exe
+            suffix: ".exe"
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: graalvm/setup-graalvm@v1
@@ -58,31 +66,9 @@ jobs:
         run: ./gradlew :oag-app:nativeCompile -PreleaseVersion=${GITHUB_REF#refs/tags/v}
         shell: bash
       - name: Rename binary
-        run: cp "${{ matrix.binary }}" "${{ matrix.artifact }}${{ contains(matrix.os, 'windows') && '.exe' || '' }}"
+        run: cp "${{ matrix.binary }}" "${{ matrix.artifact }}${{ matrix.suffix }}"
         shell: bash
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}${{ contains(matrix.os, 'windows') && '.exe' || '' }}
-
-  release:
-    needs: [fat-jar, native]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-      - name: List artifacts
-        run: ls -lhR artifacts/
-      - name: Create GitHub Release
+      - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
-          name: OAG ${{ github.ref_name }}
-          generate_release_notes: true
-          files: |
-            artifacts/oag.jar
-            artifacts/oag-linux-amd64
-            artifacts/oag-macos-amd64
-            artifacts/oag-macos-arm64
-            artifacts/oag-windows-amd64.exe
+          files: ${{ matrix.artifact }}${{ matrix.suffix }}
