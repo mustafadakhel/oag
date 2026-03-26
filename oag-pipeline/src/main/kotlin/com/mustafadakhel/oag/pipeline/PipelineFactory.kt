@@ -31,6 +31,7 @@ import com.mustafadakhel.oag.pipeline.phase.PolicyEvalPhase
 import com.mustafadakhel.oag.pipeline.phase.PrepareHeadersMitmPhase
 import com.mustafadakhel.oag.pipeline.phase.PrepareHeadersPhase
 import com.mustafadakhel.oag.pipeline.phase.RateLimitPhase
+import com.mustafadakhel.oag.pipeline.phase.RequestIdHeaderPhase
 import com.mustafadakhel.oag.pipeline.phase.RequestIdPhase
 import com.mustafadakhel.oag.pipeline.phase.SecretInjectionFallbackPhase
 import com.mustafadakhel.oag.pipeline.phase.SecretInjectionPhase
@@ -55,6 +56,7 @@ fun buildHttpPipeline(
     detectorRegistry: DetectorRegistry = DetectorRegistry.empty(),
     mlClassifier: InjectionClassifier? = null
 ): Pipeline = Pipeline(name = "http", stageSet = StageSet.REQUEST, phases = buildList {
+    if (config.requestId.injectRequestId) add(RequestIdPhase())
     if (sessionRequestTracker != null) add(VelocitySpikePhase(sessionRequestTracker))
     if (config.security.agentSigningSecret != null) add(SignaturePhase())
     add(DnsExfiltrationPhase(policyService))
@@ -84,7 +86,7 @@ fun buildHttpPipeline(
     add(SecretInjectionPhase(policyService, secretMaterializer))
     add(SecretInjectionFallbackPhase())
     add(HeaderRewritesPhase())
-    if (config.requestId.injectRequestId) add(RequestIdPhase())
+    if (config.requestId.injectRequestId) add(RequestIdHeaderPhase())
 })
 
 fun buildConnectPipeline(
@@ -133,6 +135,7 @@ fun buildMitmPipeline(
     detectorRegistry: DetectorRegistry = DetectorRegistry.empty(),
     mlClassifier: InjectionClassifier? = null
 ): Pipeline = Pipeline(name = "mitm", stageSet = StageSet.REQUEST, phases = buildList {
+    add(RequestIdPhase())
     if (sessionRequestTracker != null) add(VelocitySpikePhase(sessionRequestTracker))
     if (circuitBreakerRegistry != null) add(CircuitBreakerPhase(circuitBreakerRegistry))
     add(MitmPolicyEvalPhase(policyService))
@@ -155,8 +158,6 @@ fun buildMitmPipeline(
     add(SecretInjectionPhase(policyService, secretMaterializer))
     add(SecretInjectionFallbackPhase())
     add(HeaderRewritesPhase())
-    // Always inject request IDs in MITM — inner requests lack the outer config
-    // and traceability inside a TLS tunnel is always needed for debugging.
-    add(RequestIdPhase())
+    add(RequestIdHeaderPhase())
 })
 
