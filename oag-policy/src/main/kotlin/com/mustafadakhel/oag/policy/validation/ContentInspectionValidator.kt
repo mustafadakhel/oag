@@ -61,9 +61,7 @@ internal fun PolicyMlClassifier.validate(base: String): List<ValidationError> = 
         if (modelPath.isNullOrBlank()) {
             add(ValidationError("$base.model_path", "Must be set when ml_classifier is enabled"))
         }
-        if (tokenizerPath.isNullOrBlank()) {
-            add(ValidationError("$base.tokenizer_path", "Must be set when ml_classifier is enabled"))
-        }
+        // tokenizer_path is reserved for future use; not validated as required
     }
     if (confidenceThreshold != null) {
         if (confidenceThreshold <= 0.0 || confidenceThreshold > 1.0) {
@@ -73,7 +71,18 @@ internal fun PolicyMlClassifier.validate(base: String): List<ValidationError> = 
     if (maxLength != null && maxLength <= 0) {
         add(ValidationError("$base.max_length", ValidationMessage.MUST_BE_POSITIVE))
     }
+    if (triggerMode != null && triggerMode !in VALID_TRIGGER_MODES) {
+        add(ValidationError("$base.trigger_mode", "Must be one of: ${VALID_TRIGGER_MODES.joinToString()}"))
+    }
+    if (uncertainLow != null && (uncertainLow < 0.0 || uncertainLow >= 1.0)) {
+        add(ValidationError("$base.uncertain_low", "Must be in [0.0, 1.0)"))
+    }
+    if (uncertainHigh != null && (uncertainHigh <= 0.0 || uncertainHigh > 1.0)) {
+        add(ValidationError("$base.uncertain_high", "Must be in (0.0, 1.0]"))
+    }
 }
+
+private val VALID_TRIGGER_MODES = setOf("always", "uncertain_only")
 
 internal fun PolicyUrlInspection.validate(base: String): List<ValidationError> = buildList {
     if (maxQueryLength != null && maxQueryLength <= 0) {

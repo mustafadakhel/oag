@@ -439,52 +439,6 @@ oag run --policy policy.yaml --pool-max-idle 8 --pool-idle-timeout-ms 60000
 
 Only applies to HTTP forward proxy requests. CONNECT tunnels and MITM connections are not pooled.
 
-## Smoke Test
-
-```powershell
-./scripts/smoke-test.ps1
-./scripts/smoke-test.ps1 -TestSecrets -SecretProvider env
-./scripts/smoke-test.ps1 -TestSecrets -SecretProvider file -SecretDir .\tmp\secrets
-```
-
-Uses temporary local policy and HTTP server. Expected: `ALLOW_STATUS=200`, `DENY_STATUS=403`.
-
-## Ops Validation
-
-Production-style validation: throughput baseline, stress behavior, fault handling.
-
-```powershell
-./scripts/ops-bench.ps1 -Requests 300 -Concurrency 12
-./scripts/ops-stress.ps1 -Requests 2000 -Concurrency 48 -PayloadBytes 0
-./scripts/ops-faults.ps1
-./scripts/ops-run.ps1 -BenchRequests 300 -BenchConcurrency 12 -StressRequests 2000 -StressConcurrency 48
-```
-
-All scripts except `smoke-test.ps1` support `-Json` for CI output. `ops-run.ps1` orchestrates all three and produces combined JSON summary. Use `-GradleArgs` for custom flags (file provider, bundles, etc.).
-
-**Prerequisites:** Python (local upstream server), `curl.exe` (fault injection).
-
-### Bench Script (`ops-bench.ps1`)
-
-Inputs: `-Requests`, `-Concurrency`, `-ProxyPort`, `-UpstreamPort`, `-GradleArgs`, `-WarmupRequests`, `-Output`, `-VerifyAudit`, `-StrictAudit`, `-AuditMinRate`, `-Seed`.
-Outputs: total time, errors, RPS, P50/P95/P99 latency.
-
-### Stress Script (`ops-stress.ps1`)
-
-Same inputs plus `-PayloadBytes` (0=GET, >0=POST). Geared for higher concurrency.
-
-### Fault Injection (`ops-faults.ps1`)
-
-Checks: bad policy validation, secret materialization failure (403), upstream connection failure (502). Optional `-BundleVerify`.
-
-### Interpretation
-
-- Errors > 0: inspect `audit.jsonl` for dominant `reason_code`.
-- Latency spikes: lower concurrency to isolate CPU vs I/O.
-- Repeated faults: `oag doctor --json`.
-
-All scripts auto-cleanup. If a process is left over, terminate the Gradle Java process.
-
 ## Troubleshooting
 
 **Proxy not receiving traffic** — Ensure agent uses `HTTP_PROXY`/`HTTPS_PROXY`. Confirm OAG is listening on configured port.

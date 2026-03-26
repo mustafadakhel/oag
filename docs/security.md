@@ -97,7 +97,7 @@ defaults:
     max_length: 512
 ```
 
-Requires ONNX Runtime on classpath (not bundled). Tokenization uses raw char-code encoding internally — no external tokenizer library (e.g., DJL HuggingFace Tokenizers) is required or used. Silently disabled if unavailable. Combined score = max(heuristic, ML). Trigger mode is hardcoded to `ALWAYS`; `trigger_mode` is not yet configurable via policy YAML.
+Requires ONNX Runtime on classpath (not bundled). Tokenization uses raw char-code encoding internally — no external tokenizer library (e.g., DJL HuggingFace Tokenizers) is required or used. Silently disabled if unavailable. Combined score = max(heuristic, ML). Set `trigger_mode: uncertain_only` to skip ML inference when the heuristic score is already decisive (outside the `uncertain_low`/`uncertain_high` band), reducing latency on high-throughput deployments.
 
 ### Per-Rule Overrides
 

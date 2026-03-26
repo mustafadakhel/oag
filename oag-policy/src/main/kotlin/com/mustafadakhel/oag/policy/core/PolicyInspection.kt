@@ -51,7 +51,10 @@ data class PolicyMlClassifier(
     @SerialName("model_path") val modelPath: String? = null,
     @SerialName("tokenizer_path") val tokenizerPath: String? = null,
     @SerialName("confidence_threshold") val confidenceThreshold: Double? = null,
-    @SerialName("max_length") val maxLength: Int? = null
+    @SerialName("max_length") val maxLength: Int? = null,
+    @SerialName("trigger_mode") val triggerMode: String? = null,
+    @SerialName("uncertain_low") val uncertainLow: Double? = null,
+    @SerialName("uncertain_high") val uncertainHigh: Double? = null
 )
 
 @Serializable
