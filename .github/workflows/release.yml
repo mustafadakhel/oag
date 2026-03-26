@@ -77,7 +77,7 @@ jobs:
             artifact: oag-linux-amd64
             binary: oag-app/build/native/nativeCompile/oag
             suffix: ""
-          - os: macos-13
+          - os: macos-15-intel
             artifact: oag-macos-amd64
             binary: oag-app/build/native/nativeCompile/oag
             suffix: ""
