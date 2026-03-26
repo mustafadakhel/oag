@@ -48,7 +48,12 @@ private fun AuditContentInspection.isNonTrivial(): Boolean =
         dnsEntropyScore != null || dataBudgetUsedBytes != null || responseTruncated ||
         streamingPatternsMatched != null || injectionScore != null || injectionSignals != null ||
         credentialsDetected != null || dataClassificationMatches != null ||
-        dataClassificationCategories != null || pathEntropyScore != null || pathTraversalDetected != null
+        dataClassificationCategories != null || pathEntropyScore != null || pathTraversalDetected != null ||
+        pluginDetectorIds != null || pluginFindingCount != null ||
+        responsePluginDetectorIds != null || responsePluginFindingCount != null ||
+        streamingPluginDetectorIds != null || streamingPluginFindingCount != null ||
+        suppressedFindingCount != null || redactFindingCount != null || logFindingCount != null ||
+        injectionEscalating != null
 
 internal fun buildFinalContentInspection(
     context: RequestPipelineContext,

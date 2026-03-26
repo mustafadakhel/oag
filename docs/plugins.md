@@ -222,7 +222,7 @@ Plugin findings appear in audit events under `content_inspection`:
 
 Denied requests show `reason_code: "plugin_detected"` in the decision.
 
-**Note on `content_inspection` emission:** The `content_inspection` field is omitted from the audit event when `isNonTrivial()` returns false. The trivial check covers body inspection, injection patterns, entropy scores, data budgets, response truncation, credential detection, data classification, and path analysis — but does not include plugin-specific fields (`plugin_detector_ids`, `plugin_finding_count`, and their response/streaming equivalents). This means that if plugins fire but no other inspection signals are present, `content_inspection` will be absent from the audit event even though detectors ran and produced findings.
+**Note on `content_inspection` emission:** The `content_inspection` field is included in the audit event whenever any inspection signal is present — including plugin findings (`plugin_detector_ids`, `plugin_finding_count`, and their response/streaming equivalents).
 
 ## Finding Suppressions
 
