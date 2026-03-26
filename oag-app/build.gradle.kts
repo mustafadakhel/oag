@@ -34,6 +34,8 @@ graalvmNative {
             imageName.set("oag")
             buildArgs.addAll(
                 "--no-fallback",
+                "--initialize-at-build-time=kotlin",
+                "--initialize-at-build-time=kotlinx",
                 "--initialize-at-run-time=org.bouncycastle.jce.provider.BouncyCastleProvider",
                 "--initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG",
                 "--initialize-at-run-time=org.bouncycastle.crypto.prng.SP800SecureRandom",
