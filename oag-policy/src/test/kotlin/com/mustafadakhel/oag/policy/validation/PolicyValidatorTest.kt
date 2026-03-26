@@ -4,6 +4,7 @@ import com.mustafadakhel.oag.policy.core.*
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class PolicyValidatorTest {
@@ -960,7 +961,7 @@ class PolicyValidatorTest {
     }
 
     @Test
-    fun `ml_classifier enabled without tokenizer_path fails`() {
+    fun `ml_classifier enabled without tokenizer_path passes`() {
         val policy = PolicyDocument(
             version = 1,
             defaults = PolicyDefaults(
@@ -968,7 +969,7 @@ class PolicyValidatorTest {
             )
         )
         val errors = validatePolicy(policy)
-        assertTrue(errors.any { it.path == "defaults.ml_classifier.tokenizer_path" })
+        assertFalse(errors.any { it.path == "defaults.ml_classifier.tokenizer_path" })
     }
 
     @Test

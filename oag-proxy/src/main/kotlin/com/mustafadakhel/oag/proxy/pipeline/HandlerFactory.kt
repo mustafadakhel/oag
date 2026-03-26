@@ -10,6 +10,7 @@ import com.mustafadakhel.oag.pipeline.RequestPath
 import com.mustafadakhel.oag.inspection.injection.CombinedInjectionClassifier
 import com.mustafadakhel.oag.inspection.injection.HeuristicInjectionClassifier
 import com.mustafadakhel.oag.inspection.injection.InjectionClassifier
+import com.mustafadakhel.oag.inspection.injection.MlTriggerMode
 import com.mustafadakhel.oag.inspection.injection.OnnxInjectionClassifier
 import com.mustafadakhel.oag.inspection.spi.DetectorRegistry
 import com.mustafadakhel.oag.pipeline.RequestRelay
@@ -118,15 +119,25 @@ internal fun buildFullProxyHandler(
     val mlClassifier: InjectionClassifier? = policyService.current.defaults?.mlClassifier?.let { mlConfig ->
         val modelPath = mlConfig.modelPath
         if (mlConfig.enabled != true || modelPath == null) return@let null
+        if (mlConfig.tokenizerPath != null) {
+            debugLogger.log("ml_classifier.tokenizer_path is configured but not used at runtime; OAG uses raw char-code tokenization")
+        }
         val onnx = OnnxInjectionClassifier.createOrNull(
             modelPath = modelPath,
             maxLength = mlConfig.maxLength ?: OnnxInjectionClassifier.DEFAULT_MAX_LENGTH,
             confidenceThreshold = mlConfig.confidenceThreshold ?: OnnxInjectionClassifier.DEFAULT_CONFIDENCE_THRESHOLD,
             onError = debugLogger::log
         ) ?: return@let null
+        val triggerMode = when (mlConfig.triggerMode) {
+            "uncertain_only" -> MlTriggerMode.UNCERTAIN_ONLY
+            else -> MlTriggerMode.ALWAYS
+        }
         CombinedInjectionClassifier(
             heuristic = HeuristicInjectionClassifier(),
             ml = onnx,
+            mlTriggerMode = triggerMode,
+            uncertainLow = mlConfig.uncertainLow ?: CombinedInjectionClassifier.DEFAULT_UNCERTAIN_LOW,
+            uncertainHigh = mlConfig.uncertainHigh ?: CombinedInjectionClassifier.DEFAULT_UNCERTAIN_HIGH,
             onError = debugLogger::log
         )
     }

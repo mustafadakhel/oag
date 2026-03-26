@@ -195,7 +195,10 @@ See [security.md](security.md#injection-detection) for detailed configuration gu
 - `ml_classifier`: Optional ML-based injection classifier (requires ONNX Runtime on classpath).
   - `enabled`: Boolean, default `false`.
   - `model_path`: Path to the ONNX model file (required when enabled).
-  - `tokenizer_path`: Path to the HuggingFace tokenizer.json (required when enabled).
+  - `tokenizer_path`: Reserved for future use. Not used at runtime — OAG uses raw char-code tokenization. A warning is logged at startup if set.
+  - `trigger_mode`: When to invoke the ML classifier. `always` (default) runs ML on every request. `uncertain_only` skips ML when the heuristic score is already decisive (below `uncertain_low` or above `uncertain_high`).
+  - `uncertain_low`: Lower bound of the uncertainty band (default 0.3). Heuristic scores below this skip ML.
+  - `uncertain_high`: Upper bound of the uncertainty band (default 0.8). Heuristic scores above this skip ML.
   - `confidence_threshold`: ML confidence threshold, 0-1 (default 0.5).
   - `max_length`: Maximum token sequence length (default 512).
 
