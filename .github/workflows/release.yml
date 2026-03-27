@@ -96,7 +96,7 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: 21
-          distribution: graalvm-community
+          distribution: graalvm
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: gradle/actions/setup-gradle@v4
       - name: Install UPX (Linux)
@@ -122,6 +122,7 @@ jobs:
             strip "${{ matrix.artifact }}" || true
             upx -9 "${{ matrix.artifact }}" || true
           fi
+          upx -9 "${{ matrix.artifact }}${{ matrix.suffix }}" || true
         shell: bash
       - name: Upload native artifact
         uses: actions/upload-artifact@v4
