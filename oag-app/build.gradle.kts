@@ -41,7 +41,8 @@ graalvmNative {
                 "--initialize-at-run-time=org.bouncycastle.crypto.prng.SP800SecureRandom",
                 "-H:+ReportExceptionStackTraces",
                 "-H:-IncludeMethodData",
-                "-H:ServiceLoaderFeatureExcludeServices=java.net.ContentHandlerFactory"
+                "-H:ServiceLoaderFeatureExcludeServices=java.net.ContentHandlerFactory",
+                "-Os"
             )
         }
     }
