@@ -24,7 +24,7 @@ OAG is a portable egress policy engine, secret materializer, and audit recorder 
 | **Audit event types** | 8 (startup, request, tool, policy_reload, circuit_breaker, policy_fetch, admin_access, integrity_check) |
 | **Admin endpoints** | 7 (healthz, metrics, reload, pool, policy, audit, tasks) |
 | **Prometheus metrics** | 10 counters/gauges/histograms |
-| **Distribution** | Fat JAR (19 MB), native binary (58 MB), Gradle distribution |
+| **Distribution** | Fat JAR (19 MB), native binary (21-27 MB), Docker image |
 
 ## Reading Order
 
