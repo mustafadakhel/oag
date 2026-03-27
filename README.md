@@ -69,6 +69,21 @@ pulling in a full web framework for what is fundamentally a TCP proxy.
 
 **New here?** Follow the [Getting Started](docs/getting-started.md) guide for a hands-on walkthrough.
 
+**Download a release binary:**
+
+```bash
+# Native binary (Linux, macOS, Windows — see Releases)
+./oag run --policy policy.yaml
+
+# Or Docker
+docker run -v ./policy.yaml:/config/policy.yaml ghcr.io/mustafadakhel/oag:latest
+
+# Or fat JAR
+java -jar oag.jar run --policy policy.yaml
+```
+
+**Build from source:**
+
 ```bash
 ./gradlew :oag-app:shadowJar
 java -jar oag-app/build/libs/oag-app-*-all.jar run --policy policy.yaml

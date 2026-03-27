@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.11
+
+### Performance
+
+- Upgrade native-image compiler to GraalVM CE 23 with `-Os` (optimize for size)
+- Exclude AWT dependency chain via `-H:ServiceLoaderFeatureExcludeServices`
+- Strip method metadata via `-H:-IncludeMethodData`
+- Exclude unused BouncyCastle resources (PQC, i18n, custom EC curves)
+- macOS binaries distributed as `.tar.gz` (UPX broken on macOS 13+)
+- Docker image switched to jlink custom JRE
+
+| Asset | v0.1.8 | v0.1.11 |
+|-------|--------|---------|
+| Linux | 33 MB | 25 MB |
+| macOS x64 | 93 MB | 27 MB (.tar.gz) |
+| macOS arm64 | 91 MB | 27 MB (.tar.gz) |
+| Windows | 27 MB | 21 MB |
+
+## 0.1.10
+
+### Performance
+
+- Switch to Oracle GraalVM 21, use `upx -9` instead of `--best`
+
 ## 0.1.9
 
 ### Performance

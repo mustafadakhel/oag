@@ -48,20 +48,23 @@ Bundle verification: `oag verify --bundle policy.bundle.json --public-key ./keys
 
 Set `HTTP_PROXY` and `HTTPS_PROXY` on the agent container. Mount policy file and secrets directory into the OAG container.
 
-```dockerfile
-# Example Dockerfile
-FROM eclipse-temurin:21-jre-alpine
-COPY oag-app-all.jar /app/oag.jar
-ENTRYPOINT ["java", "-jar", "/app/oag.jar"]
-CMD ["run", "--policy", "/config/policy.yaml", "--log", "/logs/audit.jsonl"]
+```bash
+docker run -v ./policy.yaml:/config/policy.yaml ghcr.io/mustafadakhel/oag:latest
 ```
 
-Or with the native binary:
+The published Docker image uses a jlink custom JRE for minimal size (~75MB). To build your own:
 
 ```dockerfile
-FROM alpine:3.20
-COPY oag /usr/local/bin/oag
-ENTRYPOINT ["oag"]
+FROM eclipse-temurin:21-jdk-alpine AS jre-build
+COPY oag-app-all.jar /app/oag.jar
+RUN jdeps --ignore-missing-deps --multi-release 21 --print-module-deps /app/oag.jar > /modules.txt && \
+    jlink --compress=zip-6 --strip-debug --no-header-files --no-man-pages \
+    --add-modules $(cat /modules.txt) --output /custom-jre
+
+FROM alpine:3.21
+COPY --from=jre-build /custom-jre /opt/java
+COPY --from=jre-build /app/oag.jar /app/oag.jar
+ENTRYPOINT ["/opt/java/bin/java", "-jar", "/app/oag.jar"]
 CMD ["run", "--policy", "/config/policy.yaml", "--log", "/logs/audit.jsonl"]
 ```
 
@@ -124,7 +127,7 @@ Build an AOT-compiled native binary with GraalVM:
 native-image -jar oag-app/build/libs/oag-app-1.0-SNAPSHOT-all.jar -o oag
 ```
 
-**Result:** A single ~58 MB executable. No JVM required at runtime.
+**Result:** A single native executable (21-27 MB compressed). No JVM required at runtime.
 
 Platform-specific notes:
 - **Linux/macOS:** Works out of the box with GraalVM CE or Oracle GraalVM.
