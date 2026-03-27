@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.1.6
+## 0.1.8
+
+### Bug Fixes
+
+- Fix `-Os` native-image flag incompatible with GraalVM CE 21.0.2
+
+## 0.1.7
 
 ### Bug Fixes
 
@@ -11,6 +17,16 @@
 
 - Add `OAG_ADMIN_TOKEN` environment variable as alternative to `--admin-token` CLI flag — keeps credentials out of the process list
 - Add `OAG_MTLS_KEYSTORE_PASSWORD` environment variable as alternative to `--mtls-keystore-password` CLI flag
+
+### Performance
+
+- Strip debug symbols and UPX-compress native Linux binaries in release workflow
+
+## 0.1.6
+
+### Security
+
+- Add `OAG_ADMIN_TOKEN` and `OAG_MTLS_KEYSTORE_PASSWORD` environment variable alternatives for sensitive CLI flags
 
 ## 0.1.5
 
