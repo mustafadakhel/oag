@@ -64,10 +64,26 @@ pulling in a full web framework for what is fundamentally a TCP proxy.
 
 - Kotlin: 2.2.20 (JVM)
 - JDK: 21 (toolchain)
+- Native image: GraalVM CE 23 (compiles JDK 21 bytecode)
 
 ## Quick Start
 
 **New here?** Follow the [Getting Started](docs/getting-started.md) guide for a hands-on walkthrough.
+
+**Download a release binary:**
+
+```bash
+# Native binary (Linux, macOS, Windows — see Releases)
+./oag run --policy policy.yaml
+
+# Or Docker
+docker run -v ./policy.yaml:/config/policy.yaml ghcr.io/mustafadakhel/oag:latest
+
+# Or fat JAR
+java -jar oag.jar run --policy policy.yaml
+```
+
+**Build from source:**
 
 ```bash
 ./gradlew :oag-app:shadowJar
