@@ -88,4 +88,4 @@ Open an issue on GitHub with:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the same [Business Source License 1.1](LICENSE) as the project.
+By contributing, you agree that your contributions will be licensed under the same [Apache License 2.0](LICENSE) as the project.
