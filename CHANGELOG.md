@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9
+
+### Performance
+
+- Install UPX on all platforms (Linux, macOS, Windows) for native binary compression — previously only Linux binaries were compressed
+
 ## 0.1.8
 
 ### Bug Fixes
