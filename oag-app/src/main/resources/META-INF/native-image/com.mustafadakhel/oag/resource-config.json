@@ -4,6 +4,11 @@
       {"pattern": "META-INF/services/.*"},
       {"pattern": "org/bouncycastle/.*"},
       {"pattern": "sun/security/.*"}
+    ],
+    "excludes": [
+      {"pattern": "org/bouncycastle/pqc/.*"},
+      {"pattern": "org/bouncycastle/i18n/.*"},
+      {"pattern": "org/bouncycastle/math/ec/custom/.*"}
     ]
   }
 }
