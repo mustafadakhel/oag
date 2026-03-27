@@ -99,21 +99,26 @@ jobs:
           distribution: graalvm-community
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: gradle/actions/setup-gradle@v4
-      - name: Install UPX
+      - name: Install UPX (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get install -y upx-ucl
+      - name: Install UPX (macOS)
+        if: runner.os == 'macOS'
+        run: brew install upx
+      - name: Install UPX (Windows)
+        if: runner.os == 'Windows'
+        run: choco install upx -y
+        shell: powershell
       - name: Build native image
         run: ./gradlew :oag-app:nativeCompile -PreleaseVersion=${GITHUB_REF#refs/tags/v}
         shell: bash
       - name: Strip and compress binary
         run: |
           cp "${{ matrix.binary }}" "${{ matrix.artifact }}${{ matrix.suffix }}"
-          if command -v strip &>/dev/null && [[ "${{ matrix.suffix }}" != ".exe" ]]; then
+          if [[ "${{ runner.os }}" != "Windows" ]]; then
             strip "${{ matrix.artifact }}${{ matrix.suffix }}" || true
           fi
-          if command -v upx &>/dev/null; then
-            upx --best "${{ matrix.artifact }}${{ matrix.suffix }}" || true
-          fi
+          upx --best "${{ matrix.artifact }}${{ matrix.suffix }}" || true
         shell: bash
       - name: Upload native artifact
         uses: actions/upload-artifact@v4
