@@ -64,6 +64,7 @@ pulling in a full web framework for what is fundamentally a TCP proxy.
 
 - Kotlin: 2.2.20 (JVM)
 - JDK: 21 (toolchain)
+- Native image: GraalVM CE 23 (compiles JDK 21 bytecode)
 
 ## Quick Start
 
