@@ -26,7 +26,8 @@ internal class HallucinationCheckStep(
     private val claimMatcher: ImpossibleClaimMatcher? = null,
     private val urlVerifier: UrlVerifier? = null,
     private val packageVerifier: PackageVerifier? = null,
-    private val sessionTracker: SessionRequestTracker? = null
+    private val sessionTracker: SessionRequestTracker? = null,
+    private val externalVerifier: ExternalVerifier? = null
 ) : ResponseInspectionStep {
 
     override fun inspect(bodyText: String, context: BufferedInspectionContext): StepOutcome {
@@ -121,6 +122,19 @@ internal class HallucinationCheckStep(
             }
         }
 
+        if (externalVerifier != null && config.externalEndpointUrl != null) {
+            val result = externalVerifier.verify(bodyText, context.requestBodyText)
+            if (result.score != null) {
+                signals.add(HallucinationSignalResult(
+                    name = SIGNAL_EXTERNAL_NLI,
+                    score = result.score,
+                    details = null
+                ))
+            } else if (result.error != null) {
+                context.onError("external hallucination verifier: ${result.error}")
+            }
+        }
+
         context.accumulator.hallucinationMode = mode.label()
         context.accumulator.hallucinationSignals = signals
         context.accumulator.hallucinationScore = if (signals.isNotEmpty()) {
@@ -136,6 +150,7 @@ internal class HallucinationCheckStep(
         internal const val SIGNAL_LOGPROB_ANALYSIS = "logprob_analysis"
         internal const val SIGNAL_CLAIM_CONTRADICTION = "claim_contradiction"
         internal const val SIGNAL_TOOL_RECEIPT = "tool_receipt_verification"
+        internal const val SIGNAL_EXTERNAL_NLI = "external_nli"
         private const val MAX_CLAIM_MATCHES = 5
         private const val MAX_CLAIM_DETAILS = 10
         private const val MAX_URL_DETAILS = 10
