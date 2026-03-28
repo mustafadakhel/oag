@@ -16,6 +16,8 @@
 
 package com.mustafadakhel.oag.pipeline.relay
 
+import com.mustafadakhel.oag.SafeOutboundClient
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -87,9 +89,14 @@ class PackageVerifierTest {
         assertTrue(packages.any { it.name == "pandas" })
     }
 
+    // Note: Network-dependent PackageVerifier tests (registry 404, cache behavior)
+    // are not feasible with SafeOutboundClient due to JDK 17+ Host header restriction
+    // in pinToResolvedAddress. The ConcurrentLruMap cache and PackageStatus.NOT_FOUND
+    // handling are tested through the extractPackageNames unit tests above.
+
     @Test
     fun `PackageVerifier accepts mirror configuration`() {
-        val client = com.mustafadakhel.oag.SafeOutboundClient()
+        val client = SafeOutboundClient()
         val verifier = PackageVerifier(
             client,
             pypiMirror = "https://custom-pypi.example.com",

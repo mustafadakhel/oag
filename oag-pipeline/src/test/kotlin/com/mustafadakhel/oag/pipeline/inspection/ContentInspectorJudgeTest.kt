@@ -144,4 +144,19 @@ class ContentInspectorJudgeTest {
         assertEquals("mock", result.judge!!.source)
         assertEquals(1L, result.judge!!.latencyMs)
     }
+
+    @Test
+    fun `full flow - policy to judge to deny with audit-ready result`() {
+        val service = policyServiceWithJudge(triggerMode = "always", denyThreshold = 0.5)
+        val config = PolicyContentInspection(enableBuiltinPatterns = true)
+        val ctx = JudgeCallContext(requestBody = "suspicious", host = "api.example.com", path = "/chat", method = "POST")
+        val result = checkContentInspection("normal text", config, service, judgeInvoker = mockJudge(0.7, JudgeDecision.DENY), judgeContext = ctx)
+        assertNotNull(result.decision)
+        assertEquals(PolicyAction.DENY, result.decision!!.action)
+        assertNotNull(result.judge)
+        assertEquals(0.7, result.judge!!.score, 0.001)
+        assertEquals(JudgeDecision.DENY, result.judge!!.decision)
+        assertEquals("mock", result.judge!!.source)
+        assertNull(result.judge!!.error)
+    }
 }

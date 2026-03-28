@@ -24,6 +24,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class HallucinationCheckStepTest {
 
@@ -59,6 +60,23 @@ class HallucinationCheckStepTest {
         val ctx = context()
         step.inspect("body", ctx)
         assertEquals("enforce", ctx.accumulator.hallucinationMode)
+    }
+
+    @Test
+    fun `step with claim matcher populates hallucination fields in accumulator`() {
+        val yaml = "versions:\n  contains:\n    - \"Python 4.\""
+        val matcher = ImpossibleClaimMatcher.load(yaml)
+        val step = HallucinationCheckStep(
+            PolicyHallucinationCheck(enabled = true, mode = HallucinationMode.ENFORCE),
+            claimMatcher = matcher
+        )
+        val ctx = context()
+        step.inspect("Use Python 4.1 for this", ctx)
+        assertEquals("enforce", ctx.accumulator.hallucinationMode)
+        assertNotNull(ctx.accumulator.hallucinationScore)
+        assertNotNull(ctx.accumulator.hallucinationSignals)
+        assertTrue(ctx.accumulator.hallucinationSignals!!.isNotEmpty())
+        assertEquals("impossible_claims", ctx.accumulator.hallucinationSignals!!.first().name)
     }
 
     @Test
