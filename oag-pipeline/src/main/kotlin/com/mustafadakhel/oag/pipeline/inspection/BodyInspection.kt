@@ -219,9 +219,14 @@ private fun resolveBufferableContentLength(
     val pluginDetectionActive = pluginConfig != null &&
         rule.skipPluginDetection != true &&
         pluginConfig.enabled != false
+    val topicConfig = rule.topicClassification ?: defaults?.topicClassification
+    val topicClassificationActive = topicConfig != null &&
+        rule.skipTopicClassification != true &&
+        topicConfig.enabled == true
     val needsBuffer = rule.bodyMatch != null ||
         resolveContentInspection(rule, defaults) != null ||
-        pluginDetectionActive
+        pluginDetectionActive ||
+        topicClassificationActive
     if (!needsBuffer) return null
 
     val contentLength = context.request.headers[HttpConstants.CONTENT_LENGTH]?.toLongOrNull()

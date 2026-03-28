@@ -130,6 +130,15 @@ data class AuditHallucinationSignal(
 )
 
 @Serializable
+data class AuditTopicClassification(
+    val topic: String? = null,
+    val confidence: Double? = null,
+    val action: String,
+    @SerialName("endpoint_latency_ms") val endpointLatencyMs: Long? = null,
+    val error: String? = null
+)
+
+@Serializable
 data class AuditHeaderRewrite(
     val action: String,
     val header: String
@@ -194,7 +203,8 @@ data class AuditEvent(
     @SerialName("agent_profile") val agentProfile: String? = null,
     @SerialName("phase_timings") val phaseTimings: Map<String, Double>? = null,
     @SerialName("dry_run_override") val dryRunOverride: Boolean? = null,
-    @SerialName("token_usage") val tokenUsage: AuditTokenUsage? = null
+    @SerialName("token_usage") val tokenUsage: AuditTokenUsage? = null,
+    @SerialName("topic_classification") val topicClassification: AuditTopicClassification? = null
 ) : AuditLogEvent {
     override fun withTimestamp(timestamp: String) = copy(timestamp = timestamp)
 }
