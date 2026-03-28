@@ -71,6 +71,7 @@ private fun diffDefaults(old: PolicyDefaults?, new: PolicyDefaults?): List<Strin
         diffComplex("plugin_detection", old?.pluginDetection, new?.pluginDetection)
         diffComplex("hallucination_check", old?.hallucinationCheck, new?.hallucinationCheck)
         diffComplex("topic_classification", old?.topicClassification, new?.topicClassification)
+        diffComplex("external_judge", old?.externalJudge, new?.externalJudge)
         diffComplex("finding_suppressions", old?.findingSuppressions, new?.findingSuppressions)
     }
 }
