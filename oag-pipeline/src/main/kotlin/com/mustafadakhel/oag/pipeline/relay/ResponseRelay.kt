@@ -253,7 +253,11 @@ class ResponseRelayer(
                         redactionActions = acc.redactionActions,
                         connectionReusable = !state.headers.hasConnectionClose(),
                         responsePluginFindings = acc.pluginFindings,
-                        responseDataClassification = acc.dataClassification
+                        responseDataClassification = acc.dataClassification,
+                        hallucinationScore = acc.hallucinationScore,
+                        hallucinationSignals = acc.hallucinationSignals,
+                        hallucinationMode = acc.hallucinationMode,
+                        hallucinationBypassedStreaming = acc.hallucinationBypassedStreaming
                     )
                 } else {
                     writeDenied(state.clientOutput)
@@ -262,7 +266,11 @@ class ResponseRelayer(
                         statusCode = HttpStatus.FORBIDDEN.code,
                         decisionOverride = outcome.decision,
                         redirectChain = state.redirectChain,
-                        redactionActions = acc.redactionActions
+                        redactionActions = acc.redactionActions,
+                        hallucinationScore = acc.hallucinationScore,
+                        hallucinationSignals = acc.hallucinationSignals,
+                        hallucinationMode = acc.hallucinationMode,
+                        hallucinationBypassedStreaming = acc.hallucinationBypassedStreaming
                     )
                 }
             }
@@ -289,7 +297,11 @@ class ResponseRelayer(
                     connectionReusable = !state.headers.hasConnectionClose(),
                     tokenUsage = TokenUsageExtractor.extract(outcome.bodyText),
                     responsePluginFindings = acc.pluginFindings,
-                    responseDataClassification = acc.dataClassification
+                    responseDataClassification = acc.dataClassification,
+                    hallucinationScore = acc.hallucinationScore,
+                    hallucinationSignals = acc.hallucinationSignals,
+                    hallucinationMode = acc.hallucinationMode,
+                    hallucinationBypassedStreaming = acc.hallucinationBypassedStreaming
                 )
             }
         }

@@ -1,6 +1,7 @@
 package com.mustafadakhel.oag.proxy.relay
 
 import com.mustafadakhel.oag.audit.AuditContentInspection
+import com.mustafadakhel.oag.audit.AuditHallucinationSignal
 import com.mustafadakhel.oag.audit.AuditStructuredPayload
 import com.mustafadakhel.oag.audit.AuditTokenUsage
 import com.mustafadakhel.oag.label
@@ -53,7 +54,7 @@ private fun AuditContentInspection.isNonTrivial(): Boolean =
         responsePluginDetectorIds != null || responsePluginFindingCount != null ||
         streamingPluginDetectorIds != null || streamingPluginFindingCount != null ||
         suppressedFindingCount != null || redactFindingCount != null || logFindingCount != null ||
-        injectionEscalating != null
+        injectionEscalating != null || hallucinationScore != null
 
 internal fun buildFinalContentInspection(
     context: RequestPipelineContext,
@@ -96,6 +97,12 @@ internal fun buildFinalContentInspection(
         redactFindingCount = redactFindings?.size?.takeIf { it > 0 },
         logFindingCount = logFindings?.size?.takeIf { it > 0 },
         streamingPluginDetectorIds = relayResult.streamingPluginFindings?.detectorIds?.ifEmpty { null },
-        streamingPluginFindingCount = relayResult.streamingPluginFindings?.findings?.size?.takeIf { it > 0 }
+        streamingPluginFindingCount = relayResult.streamingPluginFindings?.findings?.size?.takeIf { it > 0 },
+        hallucinationScore = relayResult.hallucinationScore,
+        hallucinationSignals = relayResult.hallucinationSignals?.map {
+            AuditHallucinationSignal(name = it.name, score = it.score, details = it.details)
+        }?.ifEmpty { null },
+        hallucinationMode = relayResult.hallucinationMode,
+        hallucinationBypassedStreaming = relayResult.hallucinationBypassedStreaming
     ).takeIf { it.isNonTrivial() }
 }

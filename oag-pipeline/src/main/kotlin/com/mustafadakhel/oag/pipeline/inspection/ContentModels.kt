@@ -4,6 +4,7 @@ import com.mustafadakhel.oag.audit.AuditHeaderRewrite
 import com.mustafadakhel.oag.audit.AuditRedirectHop
 import com.mustafadakhel.oag.enforcement.EnforcementAction
 import com.mustafadakhel.oag.inspection.content.AhoCorasickAutomaton
+import com.mustafadakhel.oag.pipeline.relay.HallucinationSignalResult
 import com.mustafadakhel.oag.policy.core.PolicyDecision
 import com.mustafadakhel.oag.enforcement.TokenUsage
 
@@ -33,7 +34,11 @@ data class ResponseRelayResult(
     val tokenUsage: TokenUsage? = null,
     val responsePluginFindings: ResponseScanResult? = null,
     val responseDataClassification: DataClassificationResult? = null,
-    val streamingPluginFindings: StreamingResponseScanResult? = null
+    val streamingPluginFindings: StreamingResponseScanResult? = null,
+    val hallucinationScore: Double? = null,
+    val hallucinationSignals: List<HallucinationSignalResult>? = null,
+    val hallucinationMode: String? = null,
+    val hallucinationBypassedStreaming: Boolean? = null
 )
 
 data class StreamingScanResult(
