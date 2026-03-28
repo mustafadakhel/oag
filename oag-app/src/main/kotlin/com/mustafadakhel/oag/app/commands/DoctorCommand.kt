@@ -8,6 +8,8 @@ import com.mustafadakhel.oag.app.parseSecretProvider
 import com.mustafadakhel.oag.app.resolvePolicyPath
 import com.mustafadakhel.oag.app.resolveSecretDir
 import com.mustafadakhel.oag.label
+import com.mustafadakhel.oag.policy.core.PolicyDocument
+import com.mustafadakhel.oag.policy.core.PolicyHallucinationCheck
 import com.mustafadakhel.oag.policy.lifecycle.PolicyService
 import com.mustafadakhel.oag.proxy.ProxyConfig
 import com.mustafadakhel.oag.proxy.ProxyDefaults
@@ -53,14 +55,18 @@ internal val DoctorCommand = CliCommand { args, out ->
         policyPublicKeyPath = config.policy.publicKeyPath,
         requireSignature = config.policy.requireSignature
     )
+    val sessionEnabled = args.hasFlag(CliFlags.SESSION)
+    val warnings = collectHallucinationWarnings(policyService.current, sessionEnabled)
     if (jsonMode) {
         out.println(cliJson.encodeToString(DoctorJsonOutput(
             policyHash = policyService.currentHash,
             policyPath = config.policy.path,
             effectiveConfig = if (verboseMode) config.toEffectiveConfigJson() else null,
-            bundle = policyService.bundleInfoOutput()
+            bundle = policyService.bundleInfoOutput(),
+            warnings = warnings.ifEmpty { null }
         )))
     } else {
+        warnings.forEach { out.println("warning: $it") }
         out.println("ok")
     }
     0
@@ -88,13 +94,46 @@ private fun ProxyConfig.toEffectiveConfigJson() = EffectiveConfigJson(
     otelServiceName = otelConfig.serviceName
 )
 
+private fun collectHallucinationWarnings(policy: PolicyDocument, sessionEnabled: Boolean): List<String> = buildList {
+    val check = policy.defaults?.hallucinationCheck ?: return@buildList
+    addAll(checkHallucinationConfig(check, "defaults.hallucination_check", sessionEnabled))
+    policy.allow.orEmpty().forEachIndexed { i, rule ->
+        rule.hallucinationCheck?.let {
+            addAll(checkHallucinationConfig(it, "allow[$i].hallucination_check", sessionEnabled))
+        }
+    }
+    policy.deny.orEmpty().forEachIndexed { i, rule ->
+        rule.hallucinationCheck?.let {
+            addAll(checkHallucinationConfig(it, "deny[$i].hallucination_check", sessionEnabled))
+        }
+    }
+}
+
+private fun checkHallucinationConfig(
+    check: PolicyHallucinationCheck,
+    base: String,
+    sessionEnabled: Boolean
+): List<String> = buildList {
+    val threshold = check.denyThreshold
+    if (threshold != null && threshold >= 1.0) {
+        add("$base.deny_threshold >= 1.0 will never trigger a deny")
+    }
+    if ((check.claimContradiction == true || check.toolReceiptVerification == true) && !sessionEnabled) {
+        add("$base enables session-aware signals but --session is not set")
+    }
+    if (check.externalEndpointUrl != null && check.externalEndpointTimeoutMs == null) {
+        add("$base.external_endpoint_url is set without external_endpoint_timeout_ms")
+    }
+}
+
 @Serializable
 internal data class DoctorJsonOutput(
     val ok: Boolean = true,
     @SerialName("policy_hash") val policyHash: String,
     @SerialName("policy_path") val policyPath: String,
     @SerialName("effective_config") val effectiveConfig: EffectiveConfigJson? = null,
-    val bundle: BundleInfoOutput? = null
+    val bundle: BundleInfoOutput? = null,
+    val warnings: List<String>? = null
 )
 
 @Serializable

@@ -22,6 +22,7 @@ data class PolicyDefaults(
     @SerialName("data_classification") val dataClassification: PolicyDataClassification? = null,
     @SerialName("max_tokens_per_session") val maxTokensPerSession: Long? = null,
     @SerialName("plugin_detection") val pluginDetection: PolicyPluginDetection? = null,
+    @SerialName("hallucination_check") val hallucinationCheck: PolicyHallucinationCheck? = null,
     @SerialName("finding_suppressions") val findingSuppressions: List<PolicyFindingSuppression>? = null
 )
 

@@ -69,6 +69,7 @@ private fun diffDefaults(old: PolicyDefaults?, new: PolicyDefaults?): List<Strin
         diff("max_tokens_per_session", old?.maxTokensPerSession, new?.maxTokensPerSession)
         diffComplex("data_classification", old?.dataClassification, new?.dataClassification)
         diffComplex("plugin_detection", old?.pluginDetection, new?.pluginDetection)
+        diffComplex("hallucination_check", old?.hallucinationCheck, new?.hallucinationCheck)
         diffComplex("finding_suppressions", old?.findingSuppressions, new?.findingSuppressions)
     }
 }
@@ -137,6 +138,8 @@ private fun diffRule(old: PolicyRule, new: PolicyRule): List<String> = buildList
     diffComplex("payload_match", old.payloadMatch, new.payloadMatch)
     diffComplex("plugin_detection", old.pluginDetection, new.pluginDetection)
     diff("skip_plugin_detection", old.skipPluginDetection, new.skipPluginDetection)
+    diffComplex("hallucination_check", old.hallucinationCheck, new.hallucinationCheck)
+    diff("skip_hallucination_check", old.skipHallucinationCheck, new.skipHallucinationCheck)
     diffComplex("finding_suppressions", old.findingSuppressions, new.findingSuppressions)
     diff("webhook_events", old.webhookEvents, new.webhookEvents)
 }
