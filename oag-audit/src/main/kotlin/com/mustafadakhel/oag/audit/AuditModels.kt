@@ -122,7 +122,18 @@ data class AuditContentInspection(
     @SerialName("hallucination_score") val hallucinationScore: Double? = null,
     @SerialName("hallucination_signals") val hallucinationSignals: List<AuditHallucinationSignal>? = null,
     @SerialName("hallucination_mode") val hallucinationMode: String? = null,
-    @SerialName("hallucination_bypassed_streaming") val hallucinationBypassedStreaming: Boolean? = null
+    @SerialName("hallucination_bypassed_streaming") val hallucinationBypassedStreaming: Boolean? = null,
+    @SerialName("external_judge") val externalJudge: AuditExternalJudge? = null
+)
+
+@Serializable
+data class AuditExternalJudge(
+    val score: Double? = null,
+    val decision: String? = null,
+    val source: String? = null,
+    @SerialName("latency_ms") val latencyMs: Long? = null,
+    val reason: String? = null,
+    val error: String? = null
 )
 
 @Serializable

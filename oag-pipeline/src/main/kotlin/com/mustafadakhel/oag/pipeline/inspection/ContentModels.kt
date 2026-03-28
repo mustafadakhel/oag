@@ -14,7 +14,8 @@ data class ContentInspectionResult(
     val decision: PolicyDecision?,
     val matchedPatterns: List<String> = emptyList(),
     val injectionScore: Double? = null,
-    val injectionSignals: List<String> = emptyList()
+    val injectionSignals: List<String> = emptyList(),
+    val judge: JudgeResult? = null
 )
 
 data class ExfiltrationCheckResult(

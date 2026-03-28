@@ -1,6 +1,7 @@
 package com.mustafadakhel.oag.proxy.relay
 
 import com.mustafadakhel.oag.audit.AuditContentInspection
+import com.mustafadakhel.oag.audit.AuditExternalJudge
 import com.mustafadakhel.oag.audit.AuditHallucinationSignal
 import com.mustafadakhel.oag.audit.AuditStructuredPayload
 import com.mustafadakhel.oag.audit.AuditTokenUsage
@@ -54,7 +55,8 @@ private fun AuditContentInspection.isNonTrivial(): Boolean =
         responsePluginDetectorIds != null || responsePluginFindingCount != null ||
         streamingPluginDetectorIds != null || streamingPluginFindingCount != null ||
         suppressedFindingCount != null || redactFindingCount != null || logFindingCount != null ||
-        injectionEscalating != null || hallucinationScore != null
+        injectionEscalating != null || hallucinationScore != null ||
+        externalJudge != null
 
 internal fun buildFinalContentInspection(
     context: RequestPipelineContext,
@@ -103,6 +105,16 @@ internal fun buildFinalContentInspection(
             AuditHallucinationSignal(name = it.name, score = it.score, details = it.details)
         }?.ifEmpty { null },
         hallucinationMode = relayResult.hallucinationMode,
-        hallucinationBypassedStreaming = relayResult.hallucinationBypassedStreaming
+        hallucinationBypassedStreaming = relayResult.hallucinationBypassedStreaming,
+        externalJudge = inspectionResult?.judge?.let {
+            AuditExternalJudge(
+                score = it.score,
+                decision = it.decision.name.lowercase(),
+                source = it.source,
+                latencyMs = it.latencyMs,
+                reason = it.reason,
+                error = it.error
+            )
+        }
     ).takeIf { it.isNonTrivial() }
 }
