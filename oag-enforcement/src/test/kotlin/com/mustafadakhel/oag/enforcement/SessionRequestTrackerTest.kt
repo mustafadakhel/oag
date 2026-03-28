@@ -179,6 +179,69 @@ class SessionRequestTrackerTest {
     }
 
     @Test
+    fun `zero-score turns are recorded in scoredTurns`() {
+        val tracker = SessionRequestTracker()
+        tracker.recordInjectionScore("s1", 0.0)
+        tracker.recordInjectionScore("s1", 0.5)
+        tracker.recordInjectionScore("s1", 0.0)
+
+        val trend = tracker.injectionTrend("s1")
+        assertEquals(3, trend.scoredTurns.size)
+        assertEquals(0.0, trend.scoredTurns[0].score, 0.001)
+        assertEquals(0.5, trend.scoredTurns[1].score, 0.001)
+        assertEquals(0.0, trend.scoredTurns[2].score, 0.001)
+    }
+
+    @Test
+    fun `scoredTurns track turn indices`() {
+        val tracker = SessionRequestTracker()
+        tracker.recordInjectionScore("s1", 0.1)
+        tracker.recordInjectionScore("s1", 0.2)
+        tracker.recordInjectionScore("s1", 0.3)
+
+        val trend = tracker.injectionTrend("s1")
+        assertEquals(1L, trend.scoredTurns[0].turnIndex)
+        assertEquals(2L, trend.scoredTurns[1].turnIndex)
+        assertEquals(3L, trend.scoredTurns[2].turnIndex)
+    }
+
+    @Test
+    fun `totalTurnCount tracks all recorded turns`() {
+        val tracker = SessionRequestTracker()
+        tracker.recordInjectionScore("s1", 0.0)
+        tracker.recordInjectionScore("s1", 0.0)
+        tracker.recordInjectionScore("s1", 0.5)
+
+        val trend = tracker.injectionTrend("s1")
+        assertEquals(3L, trend.totalTurnCount)
+    }
+
+    @Test
+    fun `scoredTurns evict oldest when exceeding maxScoreHistory`() {
+        val tracker = SessionRequestTracker(maxScoreHistory = 3)
+        tracker.recordInjectionScore("s1", 0.1)
+        tracker.recordInjectionScore("s1", 0.2)
+        tracker.recordInjectionScore("s1", 0.3)
+        tracker.recordInjectionScore("s1", 0.4)
+
+        val trend = tracker.injectionTrend("s1")
+        assertEquals(3, trend.scoredTurns.size)
+        assertEquals(0.2, trend.scoredTurns[0].score, 0.001)
+        assertEquals(4L, trend.totalTurnCount)
+    }
+
+    @Test
+    fun `zero-score turns excluded from injectionScoreHistory but included in scoredTurns`() {
+        val tracker = SessionRequestTracker()
+        tracker.recordInjectionScore("s1", 0.0)
+        tracker.recordInjectionScore("s1", 0.5)
+
+        val trend = tracker.injectionTrend("s1")
+        assertEquals(1, trend.scores.size)
+        assertEquals(2, trend.scoredTurns.size)
+    }
+
+    @Test
     fun `concurrent access does not throw`() = runBlocking {
         val tracker = SessionRequestTracker()
         val workers = 10
