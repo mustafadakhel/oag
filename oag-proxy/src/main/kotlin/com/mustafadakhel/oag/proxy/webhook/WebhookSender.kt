@@ -32,7 +32,8 @@ enum class WebhookEventType {
     INJECTION_DETECTED,
     CREDENTIAL_DETECTED,
     INTEGRITY_DRIFT,
-    ADMIN_DENIED;
+    ADMIN_DENIED,
+    HALLUCINATION_DETECTED;
 
     companion object {
         private val BY_LABEL = entries.associateBy { it.label() }

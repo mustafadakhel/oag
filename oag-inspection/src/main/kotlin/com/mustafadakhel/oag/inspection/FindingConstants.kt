@@ -33,6 +33,7 @@ sealed interface FindingLocation {
     data object RedirectHost : FindingLocation { override val label = "redirect.host" }
     data object WebSocket : FindingLocation { override val label = "websocket" }
     data object StreamingResponse : FindingLocation { override val label = "streaming_response" }
+    data object ResponseBody : FindingLocation { override val label = "response_body" }
 }
 
 enum class RecommendedAction {
