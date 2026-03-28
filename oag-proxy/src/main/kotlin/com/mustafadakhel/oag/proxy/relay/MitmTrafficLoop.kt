@@ -76,7 +76,8 @@ internal class MitmTrafficLoop(
                     clientOutput = context.output,
                     request = innerRequest,
                     requestTarget = context.target,
-                    matchedRule = context.matchedRule
+                    matchedRule = context.matchedRule,
+                    requestBodyText = context.bufferedBodyText
                 )
 
                 val finalDecision = relayResult.decisionOverride ?: context.requirePolicyDecision()

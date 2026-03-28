@@ -91,6 +91,7 @@ internal class HttpRelayHandler(
                     upstreamIn = upstreamIn, clientOutput = context.output,
                     request = context.request, requestTarget = context.target,
                     matchedRule = context.matchedRule,
+                    requestBodyText = context.bufferedBodyText,
                     responseRewriteAuditCollector = responseRewriteAuditEntries,
                     preReadStatusLine = preReadStatusLine
                 )

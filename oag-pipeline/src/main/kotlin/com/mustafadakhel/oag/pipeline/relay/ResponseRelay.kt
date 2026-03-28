@@ -81,6 +81,7 @@ class ResponseRelayer(
         request: HttpRequest,
         requestTarget: ParsedTarget,
         matchedRule: PolicyRule?,
+        requestBodyText: String? = null,
         responseRewriteAuditCollector: MutableList<AuditResponseRewrite>? = null,
         preReadStatusLine: String? = null
     ): ResponseRelayResult {
@@ -103,6 +104,7 @@ class ResponseRelayer(
             upstreamIn = upstreamIn,
             clientOutput = clientOutput,
             matchedRule = matchedRule,
+            requestBodyText = requestBodyText,
             redirectChain = redirectResult.redirectChain,
             responseRewriteAuditCollector = responseRewriteAuditCollector
         )
@@ -154,6 +156,7 @@ class ResponseRelayer(
         upstreamIn: InputStream,
         clientOutput: OutputStream,
         matchedRule: PolicyRule?,
+        requestBodyText: String?,
         redirectChain: List<AuditRedirectHop>,
         responseRewriteAuditCollector: MutableList<AuditResponseRewrite>?
     ): RelayState {
@@ -172,6 +175,7 @@ class ResponseRelayer(
             forwardedHeaders = forwardedHeaders,
             framing = framing,
             matchedRule = matchedRule,
+            requestBodyText = requestBodyText,
             responseMatch = responseMatch,
             redirectChain = redirectChain
         )
@@ -226,6 +230,7 @@ class ResponseRelayer(
             statusCode = state.statusCode,
             contentType = contentType,
             matchedRule = state.matchedRule,
+            requestBodyText = state.requestBodyText,
             onError = onError
         )
         val chain = buildInspectionChain(plan, state.matchedRule, detectorRegistry)
@@ -301,6 +306,7 @@ class ResponseRelayer(
         val forwardedHeaders: List<HttpHeader>,
         val framing: ResponseFraming,
         val matchedRule: PolicyRule?,
+        val requestBodyText: String?,
         val responseMatch: PolicyBodyMatch?,
         val redirectChain: List<AuditRedirectHop>
     )
