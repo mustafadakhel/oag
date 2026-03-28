@@ -56,7 +56,8 @@ internal class ResponseInspectionPlan(
     val bodyMatch: PolicyBodyMatch?,
     val pluginScan: Boolean,
     val dataClassification: PolicyDataClassification?,
-    val hallucinationCheck: PolicyHallucinationCheck? = null
+    val hallucinationCheck: PolicyHallucinationCheck? = null,
+    val claimMatcher: ImpossibleClaimMatcher? = null
 )
 
 data class HttpHeader(val name: String, val value: String)
@@ -76,6 +77,7 @@ class ResponseRelayer(
     private val networkConfig: NetworkConfig,
     private val dryRun: Boolean = false,
     private val detectorRegistry: DetectorRegistry = DetectorRegistry.empty(),
+    private val claimMatcher: ImpossibleClaimMatcher? = null,
     private val onError: (String) -> Unit = defaultRelayErrorHandler
 ) {
     suspend fun relay(
@@ -209,7 +211,8 @@ class ResponseRelayer(
             bodyMatch = state.responseMatch,
             pluginScan = hasResponsePlugins,
             dataClassification = responseDataClass,
-            hallucinationCheck = hallucinationCheck
+            hallucinationCheck = hallucinationCheck,
+            claimMatcher = if (hallucinationCheck != null) claimMatcher else null
         )
     }
 

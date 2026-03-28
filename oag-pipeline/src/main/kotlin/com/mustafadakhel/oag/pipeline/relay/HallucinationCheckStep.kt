@@ -21,14 +21,40 @@ import com.mustafadakhel.oag.policy.core.HallucinationMode
 import com.mustafadakhel.oag.policy.core.PolicyHallucinationCheck
 
 internal class HallucinationCheckStep(
-    private val config: PolicyHallucinationCheck
+    private val config: PolicyHallucinationCheck,
+    private val claimMatcher: ImpossibleClaimMatcher? = null
 ) : ResponseInspectionStep {
 
     override fun inspect(bodyText: String, context: BufferedInspectionContext): StepOutcome {
         val mode = config.mode ?: HallucinationMode.OBSERVE
+        val signals = mutableListOf<HallucinationSignalResult>()
+
+        if (config.impossibleClaims != false && claimMatcher != null) {
+            val matches = claimMatcher.match(bodyText)
+            if (matches.isNotEmpty()) {
+                val score = (matches.size.coerceAtMost(MAX_CLAIM_MATCHES).toDouble() / MAX_CLAIM_MATCHES)
+                    .coerceAtMost(1.0)
+                val details = matches.take(MAX_CLAIM_DETAILS)
+                    .joinToString("; ") { "${it.category}: ${it.pattern}" }
+                signals.add(HallucinationSignalResult(
+                    name = SIGNAL_IMPOSSIBLE_CLAIMS,
+                    score = score,
+                    details = details
+                ))
+            }
+        }
+
         context.accumulator.hallucinationMode = mode.label()
-        context.accumulator.hallucinationScore = null
-        context.accumulator.hallucinationSignals = emptyList()
+        context.accumulator.hallucinationSignals = signals
+        context.accumulator.hallucinationScore = if (signals.isNotEmpty()) {
+            signals.maxOf { it.score }
+        } else null
         return StepOutcome.Continue(bodyText)
+    }
+
+    companion object {
+        internal const val SIGNAL_IMPOSSIBLE_CLAIMS = "impossible_claims"
+        private const val MAX_CLAIM_MATCHES = 5
+        private const val MAX_CLAIM_DETAILS = 10
     }
 }
