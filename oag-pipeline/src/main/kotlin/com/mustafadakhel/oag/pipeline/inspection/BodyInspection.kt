@@ -20,8 +20,12 @@ import com.mustafadakhel.oag.policy.core.PolicyRule
 import com.mustafadakhel.oag.policy.core.ReasonCode
 import com.mustafadakhel.oag.policy.evaluation.matchesBody
 import com.mustafadakhel.oag.policy.lifecycle.PolicyService
+import com.mustafadakhel.oag.EscalationPattern
+import com.mustafadakhel.oag.label
 import com.mustafadakhel.oag.enforcement.EnforcementAction
+import com.mustafadakhel.oag.enforcement.EscalationConfig
 import com.mustafadakhel.oag.enforcement.SessionRequestTracker
+import com.mustafadakhel.oag.enforcement.detectEscalationPatterns
 import com.mustafadakhel.oag.http.HttpConstants
 import com.mustafadakhel.oag.pipeline.AuditExtras
 import com.mustafadakhel.oag.pipeline.BodyBufferKey
@@ -297,13 +301,29 @@ fun checkContentInspectionPhase(
         sessionRequestTracker.recordInjectionScore(sessionId, injScore)
     }
 
-    val escalating = if (sessionId != null && sessionRequestTracker != null) {
-        sessionRequestTracker.injectionTrend(sessionId).escalating
-    } else false
+    val trend = if (sessionId != null && sessionRequestTracker != null) {
+        sessionRequestTracker.injectionTrend(sessionId)
+    } else null
+    val escalating = trend?.escalating ?: false
 
-    val effectiveResult = if (escalating && inspectionResult.decision == null && injScore != null) {
+    val scoringConfig = policyService.current.defaults?.injectionScoring
+    val escalationConfig = scoringConfig?.escalation?.let { esc ->
+        if (esc.enabled == true) EscalationConfig(
+            enabled = true,
+            windowSize = esc.windowSize ?: EscalationConfig.DEFAULT_WINDOW_SIZE,
+            denyPatterns = esc.denyPatterns?.mapNotNull { label ->
+                EscalationPattern.entries.firstOrNull { it.label() == label.lowercase(java.util.Locale.ROOT) }
+            }?.toSet() ?: emptySet()
+        ) else null
+    }
+    val escalationResult = if (escalationConfig != null && trend != null) {
+        detectEscalationPatterns(trend.scoredTurns, escalationConfig)
+    } else null
+
+    val effectiveEscalating = escalating || (escalationResult?.detected == true)
+
+    val effectiveResult = if (effectiveEscalating && inspectionResult.decision == null && injScore != null) {
         val boostedScore = minOf(injScore * ESCALATION_BOOST_FACTOR, 1.0)
-        val scoringConfig = policyService.current.defaults?.injectionScoring
         val denyThreshold = scoringConfig?.denyThreshold ?: DEFAULT_DENY_THRESHOLD
         if (boostedScore >= denyThreshold) {
             context.debugLog { "injection escalation detected: boosted score ${"%.3f".format(boostedScore)} >= threshold $denyThreshold" }
@@ -329,7 +349,10 @@ fun checkContentInspectionPhase(
                 dnsEntropyScore = dnsEntropyScore(context),
                 injectionScore = effectiveResult.injectionScore,
                 injectionSignals = effectiveResult.injectionSignals.ifEmpty { null },
-                injectionEscalating = escalating.takeIf { it }
+                injectionEscalating = effectiveEscalating.takeIf { it },
+                escalationPattern = escalationResult?.pattern?.label(),
+                escalationWindowScores = escalationResult?.windowScores?.takeIf { it.isNotEmpty() },
+                escalationWindowSize = escalationResult?.windowSize?.takeIf { escalationResult.detected }
             )),
             enforcementActions = listOf(
                 EnforcementAction.Notify(
