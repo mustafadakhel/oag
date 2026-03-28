@@ -20,6 +20,8 @@ import com.mustafadakhel.oag.inspection.InspectionContext
 import com.mustafadakhel.oag.inspection.ResponseTextBody
 import com.mustafadakhel.oag.inspection.spi.DetectorRegistry
 import com.mustafadakhel.oag.policy.core.PolicyDataClassification
+import com.mustafadakhel.oag.policy.core.PolicyDefaults
+import com.mustafadakhel.oag.policy.core.PolicyHallucinationCheck
 import com.mustafadakhel.oag.pipeline.HostResolver
 import com.mustafadakhel.oag.pipeline.inspection.resolveResponseDataClassification
 import com.mustafadakhel.oag.pipeline.inspection.scanStreamingResponseBody
@@ -53,7 +55,8 @@ internal class ResponseInspectionPlan(
     val redact: Boolean,
     val bodyMatch: PolicyBodyMatch?,
     val pluginScan: Boolean,
-    val dataClassification: PolicyDataClassification?
+    val dataClassification: PolicyDataClassification?,
+    val hallucinationCheck: PolicyHallucinationCheck? = null
 )
 
 data class HttpHeader(val name: String, val value: String)
@@ -199,13 +202,21 @@ class ResponseRelayer(
         val pluginScanResponses = (state.matchedRule?.pluginDetection ?: defaults?.pluginDetection)?.scanResponses == true
         val hasResponsePlugins = pluginScanResponses && detectorRegistry.registrationsFor(ResponseTextBody::class.java).isNotEmpty()
         val responseDataClass = resolveResponseDataClassification(state.matchedRule, defaults)
-        if (!hasBodyRedact && state.responseMatch == null && !hasResponsePlugins && responseDataClass == null) return null
+        val hallucinationCheck = resolveHallucinationCheck(state.matchedRule, defaults)
+        if (!hasBodyRedact && state.responseMatch == null && !hasResponsePlugins && responseDataClass == null && hallucinationCheck == null) return null
         return ResponseInspectionPlan(
             redact = hasBodyRedact,
             bodyMatch = state.responseMatch,
             pluginScan = hasResponsePlugins,
-            dataClassification = responseDataClass
+            dataClassification = responseDataClass,
+            hallucinationCheck = hallucinationCheck
         )
+    }
+
+    private fun resolveHallucinationCheck(matchedRule: PolicyRule?, defaults: PolicyDefaults?): PolicyHallucinationCheck? {
+        if (matchedRule?.skipHallucinationCheck == true) return null
+        val config = matchedRule?.hallucinationCheck ?: defaults?.hallucinationCheck ?: return null
+        return if (config.enabled == true) config else null
     }
 
     private fun isBufferable(state: RelayState): Boolean {
