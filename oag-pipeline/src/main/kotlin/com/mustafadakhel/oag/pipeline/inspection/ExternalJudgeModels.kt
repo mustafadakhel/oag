@@ -62,4 +62,16 @@ data class JudgeResult(
 fun String.sanitizeForJudge(maxLength: Int = MAX_JUDGE_BODY_LENGTH): String =
     take(maxLength).replace("\u0000", "")
 
+data class JudgeCallContext(
+    val requestBody: String,
+    val host: String? = null,
+    val path: String? = null,
+    val method: String? = null,
+    val injectionScore: Double? = null
+)
+
+fun interface JudgeInvoker {
+    fun invoke(context: JudgeCallContext): JudgeResult
+}
+
 private const val MAX_JUDGE_BODY_LENGTH = 32_768
