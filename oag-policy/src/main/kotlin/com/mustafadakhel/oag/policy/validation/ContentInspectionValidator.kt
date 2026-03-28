@@ -144,6 +144,43 @@ internal fun PolicyDataClassification.validate(base: String): List<ValidationErr
     }
 }
 
+private val VALID_JUDGE_TRIGGER_MODES = setOf("always", "uncertain_only")
+private val VALID_JUDGE_ON_ERROR = setOf("deny", "allow", "skip")
+private val ALLOWED_JUDGE_SCHEMES = setOf("http", "https")
+
+internal fun PolicyExternalJudge.validate(base: String): List<ValidationError> = buildList {
+    if (enabled == true && endpointUrl.isNullOrBlank()) {
+        add(ValidationError("$base.endpoint_url", "Must be set when external_judge is enabled"))
+    }
+    if (endpointUrl != null && endpointUrl.isNotBlank()) {
+        runCatching { java.net.URI(endpointUrl) }.fold(
+            onSuccess = { uri ->
+                if (uri.scheme !in ALLOWED_JUDGE_SCHEMES) {
+                    add(ValidationError("$base.endpoint_url", "Scheme must be http or https"))
+                }
+            },
+            onFailure = {
+                add(ValidationError("$base.endpoint_url", "Invalid URL: ${it.message}"))
+            }
+        )
+    }
+    if (timeoutMs != null && timeoutMs <= 0) {
+        add(ValidationError("$base.timeout_ms", ValidationMessage.MUST_BE_POSITIVE))
+    }
+    if (triggerMode != null && triggerMode !in VALID_JUDGE_TRIGGER_MODES) {
+        add(ValidationError("$base.trigger_mode", "Must be one of: ${VALID_JUDGE_TRIGGER_MODES.joinToString()}"))
+    }
+    if (onError != null && onError !in VALID_JUDGE_ON_ERROR) {
+        add(ValidationError("$base.on_error", "Must be one of: ${VALID_JUDGE_ON_ERROR.joinToString()}"))
+    }
+    if (denyThreshold != null && (denyThreshold <= 0.0 || denyThreshold > 1.0)) {
+        add(ValidationError("$base.deny_threshold", "Must be between 0 (exclusive) and 1 (inclusive)"))
+    }
+    if (maxResponseBytes != null && maxResponseBytes <= 0) {
+        add(ValidationError("$base.max_response_bytes", ValidationMessage.MUST_BE_POSITIVE))
+    }
+}
+
 internal fun validateRegexField(path: String, pattern: String): List<ValidationError> {
     if (pattern.isEmpty()) return listOf(ValidationError(path, "Must not be empty"))
     return runCatching { Regex(pattern) }.fold(

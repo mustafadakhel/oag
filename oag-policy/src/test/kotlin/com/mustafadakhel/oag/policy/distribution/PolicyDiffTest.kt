@@ -187,7 +187,7 @@ class PolicyDiffTest {
         // diffDefaults manually enumerates all PolicyDefaults fields.
         // If a new field is added to PolicyDefaults without updating diffDefaults,
         // this assertion will fail, reminding you to add it.
-        val coveredCount = 20
+        val coveredCount = 21
         assertEquals(
             coveredCount, componentCount,
             "PolicyDefaults has $componentCount data class components but diffDefaults covers $coveredCount. " +

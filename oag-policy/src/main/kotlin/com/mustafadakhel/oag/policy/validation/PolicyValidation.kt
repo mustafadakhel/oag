@@ -73,6 +73,7 @@ private fun PolicyDefaults.validate(): List<ValidationError> = buildList {
     }
     hallucinationCheck?.validate("defaults.hallucination_check")?.forEach { add(it) }
     topicClassification?.validate("defaults.topic_classification")?.forEach { add(it) }
+    externalJudge?.validate("defaults.external_judge")?.forEach { add(it) }
     findingSuppressions?.forEachIndexed { index, suppression ->
         if (suppression.detectorId == null && suppression.findingType == null && suppression.pattern == null) {
             add(ValidationError("defaults.finding_suppressions[$index]", "At least one of detector_id, finding_type, or pattern must be set"))
