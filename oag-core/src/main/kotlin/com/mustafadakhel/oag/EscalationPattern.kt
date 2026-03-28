@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mustafadakhel.oag.policy.core
+package com.mustafadakhel.oag
 
 enum class EscalationPattern {
     SUSTAINED_ELEVATION,
