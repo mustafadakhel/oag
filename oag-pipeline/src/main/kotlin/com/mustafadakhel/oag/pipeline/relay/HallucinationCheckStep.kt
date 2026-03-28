@@ -23,7 +23,8 @@ import com.mustafadakhel.oag.policy.core.PolicyHallucinationCheck
 internal class HallucinationCheckStep(
     private val config: PolicyHallucinationCheck,
     private val claimMatcher: ImpossibleClaimMatcher? = null,
-    private val urlVerifier: UrlVerifier? = null
+    private val urlVerifier: UrlVerifier? = null,
+    private val packageVerifier: PackageVerifier? = null
 ) : ResponseInspectionStep {
 
     override fun inspect(bodyText: String, context: BufferedInspectionContext): StepOutcome {
@@ -60,6 +61,21 @@ internal class HallucinationCheckStep(
             }
         }
 
+        if (config.packageVerification == true && packageVerifier != null) {
+            val results = packageVerifier.extractAndVerify(bodyText)
+            val notFound = results.filter { it.status == PackageStatus.NOT_FOUND }
+            if (notFound.isNotEmpty()) {
+                val score = (notFound.size.toDouble() / results.size.coerceAtLeast(1)).coerceAtMost(1.0)
+                val details = notFound.take(MAX_PACKAGE_DETAILS)
+                    .joinToString("; ") { "${it.registry}:${it.packageName}" }
+                signals.add(HallucinationSignalResult(
+                    name = SIGNAL_PACKAGE_VERIFICATION,
+                    score = score,
+                    details = details
+                ))
+            }
+        }
+
         context.accumulator.hallucinationMode = mode.label()
         context.accumulator.hallucinationSignals = signals
         context.accumulator.hallucinationScore = if (signals.isNotEmpty()) {
@@ -71,8 +87,10 @@ internal class HallucinationCheckStep(
     companion object {
         internal const val SIGNAL_IMPOSSIBLE_CLAIMS = "impossible_claims"
         internal const val SIGNAL_URL_VERIFICATION = "url_verification"
+        internal const val SIGNAL_PACKAGE_VERIFICATION = "package_verification"
         private const val MAX_CLAIM_MATCHES = 5
         private const val MAX_CLAIM_DETAILS = 10
         private const val MAX_URL_DETAILS = 10
+        private const val MAX_PACKAGE_DETAILS = 10
     }
 }

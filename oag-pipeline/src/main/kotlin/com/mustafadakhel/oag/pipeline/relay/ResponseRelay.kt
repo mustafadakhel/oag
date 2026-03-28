@@ -58,7 +58,8 @@ internal class ResponseInspectionPlan(
     val dataClassification: PolicyDataClassification?,
     val hallucinationCheck: PolicyHallucinationCheck? = null,
     val claimMatcher: ImpossibleClaimMatcher? = null,
-    val urlVerifier: UrlVerifier? = null
+    val urlVerifier: UrlVerifier? = null,
+    val packageVerifier: PackageVerifier? = null
 )
 
 data class HttpHeader(val name: String, val value: String)
@@ -80,6 +81,7 @@ class ResponseRelayer(
     private val detectorRegistry: DetectorRegistry = DetectorRegistry.empty(),
     private val claimMatcher: ImpossibleClaimMatcher? = null,
     private val urlVerifier: UrlVerifier? = null,
+    private val packageVerifier: PackageVerifier? = null,
     private val onError: (String) -> Unit = defaultRelayErrorHandler
 ) {
     suspend fun relay(
@@ -215,7 +217,8 @@ class ResponseRelayer(
             dataClassification = responseDataClass,
             hallucinationCheck = hallucinationCheck,
             claimMatcher = if (hallucinationCheck != null) claimMatcher else null,
-            urlVerifier = if (hallucinationCheck?.urlVerification == true) urlVerifier else null
+            urlVerifier = if (hallucinationCheck?.urlVerification == true) urlVerifier else null,
+            packageVerifier = if (hallucinationCheck?.packageVerification == true) packageVerifier else null
         )
     }
 

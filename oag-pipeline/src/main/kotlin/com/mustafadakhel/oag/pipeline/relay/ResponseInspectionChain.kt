@@ -36,7 +36,7 @@ internal fun buildInspectionChain(
             add(PluginScanStep(detectorRegistry))
         }
         if (plan.hallucinationCheck != null) {
-            add(HallucinationCheckStep(plan.hallucinationCheck, plan.claimMatcher, plan.urlVerifier))
+            add(HallucinationCheckStep(plan.hallucinationCheck, plan.claimMatcher, plan.urlVerifier, plan.packageVerifier))
         }
     }
     return ResponseInspectionChain(steps)
