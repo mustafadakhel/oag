@@ -76,6 +76,17 @@ internal class HallucinationCheckStep(
             }
         }
 
+        if (config.logprobAnalysis == true) {
+            val analysis = LogprobAnalyzer.analyze(bodyText)
+            if (analysis != null) {
+                signals.add(HallucinationSignalResult(
+                    name = SIGNAL_LOGPROB_ANALYSIS,
+                    score = analysis.score,
+                    details = "mean=${String.format("%.3f", analysis.meanLogprob)} min=${String.format("%.3f", analysis.minLogprob)} tokens=${analysis.tokenCount}"
+                ))
+            }
+        }
+
         context.accumulator.hallucinationMode = mode.label()
         context.accumulator.hallucinationSignals = signals
         context.accumulator.hallucinationScore = if (signals.isNotEmpty()) {
@@ -88,6 +99,7 @@ internal class HallucinationCheckStep(
         internal const val SIGNAL_IMPOSSIBLE_CLAIMS = "impossible_claims"
         internal const val SIGNAL_URL_VERIFICATION = "url_verification"
         internal const val SIGNAL_PACKAGE_VERIFICATION = "package_verification"
+        internal const val SIGNAL_LOGPROB_ANALYSIS = "logprob_analysis"
         private const val MAX_CLAIM_MATCHES = 5
         private const val MAX_CLAIM_DETAILS = 10
         private const val MAX_URL_DETAILS = 10
