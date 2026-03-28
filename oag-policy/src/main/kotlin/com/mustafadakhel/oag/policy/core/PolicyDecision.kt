@@ -46,6 +46,7 @@ enum class ReasonCode(val category: ReasonCategory) {
     PLUGIN_DETECTED(ReasonCategory.SECURITY),
     RESPONSE_PLUGIN_DETECTED(ReasonCategory.SECURITY),
     HALLUCINATION_DETECTED(ReasonCategory.SECURITY),
+    TOPIC_DENIED(ReasonCategory.SECURITY),
 
     BODY_TOO_LARGE(ReasonCategory.VALIDATION),
     BODY_MATCH_FAILED(ReasonCategory.VALIDATION),
