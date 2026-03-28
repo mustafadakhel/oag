@@ -42,7 +42,8 @@ data class PolicyInjectionScoring(
     @SerialName("log_threshold") val logThreshold: Double? = null,
     @SerialName("entropy_weight") val entropyWeight: Double? = null,
     @SerialName("entropy_baseline") val entropyBaseline: Double? = null,
-    @SerialName("category_weights") val categoryWeights: List<PolicyCategoryWeight>? = null
+    @SerialName("category_weights") val categoryWeights: List<PolicyCategoryWeight>? = null,
+    val escalation: PolicyEscalation? = null
 )
 
 @Serializable
