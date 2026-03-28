@@ -143,6 +143,7 @@ private fun diffRule(old: PolicyRule, new: PolicyRule): List<String> = buildList
     diff("skip_hallucination_check", old.skipHallucinationCheck, new.skipHallucinationCheck)
     diffComplex("topic_classification", old.topicClassification, new.topicClassification)
     diff("skip_topic_classification", old.skipTopicClassification, new.skipTopicClassification)
+    diffComplex("schema_validation", old.schemaValidation, new.schemaValidation)
     diffComplex("finding_suppressions", old.findingSuppressions, new.findingSuppressions)
     diff("webhook_events", old.webhookEvents, new.webhookEvents)
 }

@@ -202,7 +202,7 @@ class PolicyDiffTest {
         // diffRule manually enumerates PolicyRule fields (excludes `id` which is used for matching, not diffing).
         // Update diffRule in PolicyDiff.kt when adding new PolicyRule fields.
         val coveredCount = componentCount - 1
-        val actualDiffEntries = 36
+        val actualDiffEntries = 37
         assertEquals(
             coveredCount, actualDiffEntries,
             "PolicyRule has $componentCount components (minus id = $coveredCount) but diffRule covers $actualDiffEntries. " +

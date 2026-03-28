@@ -52,6 +52,7 @@ enum class ReasonCode(val category: ReasonCategory) {
     BODY_MATCH_FAILED(ReasonCategory.VALIDATION),
     INVALID_REQUEST(ReasonCategory.VALIDATION),
     PATH_LENGTH_EXCEEDED(ReasonCategory.VALIDATION),
+    RESPONSE_SCHEMA_INVALID(ReasonCategory.VALIDATION),
 
     RATE_LIMITED(ReasonCategory.RESOURCE),
     VELOCITY_SPIKE_DETECTED(ReasonCategory.RESOURCE),

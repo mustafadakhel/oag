@@ -16,6 +16,7 @@ object WebhookEventLabels {
     val valid: Set<String> = setOf(
         "circuit_open", "reload_failed", "injection_detected",
         "credential_detected", "integrity_drift", "admin_denied",
-        "hallucination_detected"
+        "hallucination_detected",
+        "schema_validation_failed"
     )
 }

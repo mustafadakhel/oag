@@ -63,6 +63,7 @@ internal fun PolicyRule.validate(base: String, validMethods: Set<String>): List<
     if (skipTopicClassification == true && topicClassification != null) {
         add(ValidationError("$base.skip_topic_classification", "Cannot set both skip_topic_classification and topic_classification"))
     }
+    schemaValidation?.validate("$base.schema_validation")?.forEach { add(it) }
     if (pluginDetection?.detectorIds?.isEmpty() == true) {
         add(ValidationError("$base.plugin_detection.detector_ids", "Empty detector_ids list silently disables all detection; omit the field or use skip_plugin_detection"))
     }

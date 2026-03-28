@@ -40,6 +40,7 @@ data class PolicyRule(
     @SerialName("skip_hallucination_check") val skipHallucinationCheck: Boolean? = null,
     @SerialName("topic_classification") val topicClassification: PolicyTopicClassification? = null,
     @SerialName("skip_topic_classification") val skipTopicClassification: Boolean? = null,
+    @SerialName("schema_validation") val schemaValidation: PolicySchemaValidation? = null,
     @SerialName("finding_suppressions") val findingSuppressions: List<PolicyFindingSuppression>? = null,
     @SerialName("webhook_events") val webhookEvents: List<String>? = null
 )
