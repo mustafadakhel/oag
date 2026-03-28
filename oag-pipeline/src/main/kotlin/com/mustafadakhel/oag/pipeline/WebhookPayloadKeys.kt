@@ -9,6 +9,7 @@ object WebhookPayloadKeys {
     const val EVENT_INTEGRITY_DRIFT = "integrity_drift"
     const val EVENT_ADMIN_DENIED = "admin_denied"
     const val EVENT_HALLUCINATION_DETECTED = "hallucination_detected"
+    const val EVENT_SCHEMA_VALIDATION_FAILED = "schema_validation_failed"
 
     // Data map keys
     const val DATA_HOST = "host"
