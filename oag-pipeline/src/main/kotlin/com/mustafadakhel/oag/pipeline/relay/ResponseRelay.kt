@@ -19,6 +19,7 @@ import com.mustafadakhel.oag.enforcement.TokenUsageExtractor
 import com.mustafadakhel.oag.inspection.InspectionContext
 import com.mustafadakhel.oag.inspection.ResponseTextBody
 import com.mustafadakhel.oag.inspection.spi.DetectorRegistry
+import com.mustafadakhel.oag.enforcement.SessionRequestTracker
 import com.mustafadakhel.oag.policy.core.PolicyDataClassification
 import com.mustafadakhel.oag.policy.core.PolicyDefaults
 import com.mustafadakhel.oag.policy.core.PolicyHallucinationCheck
@@ -59,7 +60,8 @@ internal class ResponseInspectionPlan(
     val hallucinationCheck: PolicyHallucinationCheck? = null,
     val claimMatcher: ImpossibleClaimMatcher? = null,
     val urlVerifier: UrlVerifier? = null,
-    val packageVerifier: PackageVerifier? = null
+    val packageVerifier: PackageVerifier? = null,
+    val sessionTracker: SessionRequestTracker? = null
 )
 
 data class HttpHeader(val name: String, val value: String)
@@ -82,6 +84,7 @@ class ResponseRelayer(
     private val claimMatcher: ImpossibleClaimMatcher? = null,
     private val urlVerifier: UrlVerifier? = null,
     private val packageVerifier: PackageVerifier? = null,
+    private val sessionTracker: SessionRequestTracker? = null,
     private val onError: (String) -> Unit = defaultRelayErrorHandler
 ) {
     suspend fun relay(
@@ -218,7 +221,8 @@ class ResponseRelayer(
             hallucinationCheck = hallucinationCheck,
             claimMatcher = if (hallucinationCheck != null) claimMatcher else null,
             urlVerifier = if (hallucinationCheck?.urlVerification == true) urlVerifier else null,
-            packageVerifier = if (hallucinationCheck?.packageVerification == true) packageVerifier else null
+            packageVerifier = if (hallucinationCheck?.packageVerification == true) packageVerifier else null,
+            sessionTracker = if (hallucinationCheck != null) sessionTracker else null
         )
     }
 

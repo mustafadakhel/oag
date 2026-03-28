@@ -32,6 +32,7 @@ class BufferedInspectionContext(
     val contentType: String?,
     val matchedRule: PolicyRule?,
     val requestBodyText: String? = null,
+    val sessionId: String? = null,
     val onError: (String) -> Unit,
     val accumulator: InspectionAccumulator = InspectionAccumulator()
 )
