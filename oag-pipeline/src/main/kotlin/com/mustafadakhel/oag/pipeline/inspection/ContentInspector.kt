@@ -77,10 +77,10 @@ private fun runJudgeIfTriggered(
         val onErrorPolicy = judgeConfig.onError ?: "skip"
         return if (onErrorPolicy == "deny") {
             baseResult.copy(
-                decision = com.mustafadakhel.oag.policy.core.PolicyDecision(
-                    action = com.mustafadakhel.oag.policy.core.PolicyAction.DENY,
+                decision = PolicyDecision(
+                    action = PolicyAction.DENY,
                     ruleId = null,
-                    reasonCode = com.mustafadakhel.oag.policy.core.ReasonCode.INJECTION_DETECTED
+                    reasonCode = ReasonCode.INJECTION_DETECTED
                 ),
                 judge = JudgeResult(score = 0.0, decision = JudgeDecision.ABSTAIN, source = "external", latencyMs = 0, error = e.message)
             )
@@ -91,10 +91,10 @@ private fun runJudgeIfTriggered(
 
     val denyThreshold = judgeConfig.denyThreshold ?: 0.5
     val effectiveDecision = if (judgeResult.decision == JudgeDecision.DENY || judgeResult.score >= denyThreshold) {
-        com.mustafadakhel.oag.policy.core.PolicyDecision(
-            action = com.mustafadakhel.oag.policy.core.PolicyAction.DENY,
+        PolicyDecision(
+            action = PolicyAction.DENY,
             ruleId = null,
-            reasonCode = com.mustafadakhel.oag.policy.core.ReasonCode.INJECTION_DETECTED
+            reasonCode = ReasonCode.INJECTION_DETECTED
         )
     } else baseResult.decision
 

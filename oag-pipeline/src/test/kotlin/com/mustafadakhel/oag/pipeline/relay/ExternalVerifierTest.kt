@@ -72,6 +72,19 @@ class ExternalVerifierTest {
     }
 
     @Test
+    fun `unreachable endpoint returns failure with error`() {
+        val client = SafeOutboundClient()
+        val verifier = ExternalVerifier(
+            client = client,
+            endpointUrl = "https://this-endpoint-does-not-exist-oag-test.invalid/verify",
+            timeoutMs = 1000
+        )
+        val result = verifier.verify("test response text")
+        assertNull(result.score)
+        assertNotNull(result.error)
+    }
+
+    @Test
     fun `HTTPS enforcement - only https and http schemes accepted by SafeOutboundClient`() {
         val client = SafeOutboundClient()
         val verifier = ExternalVerifier(

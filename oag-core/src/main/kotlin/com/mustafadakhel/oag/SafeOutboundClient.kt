@@ -32,7 +32,8 @@ sealed interface OutboundResult<out T> {
 }
 
 class SafeOutboundClient(
-    private val connectTimeoutMs: Long = DEFAULT_CONNECT_TIMEOUT_MS
+    private val connectTimeoutMs: Long = DEFAULT_CONNECT_TIMEOUT_MS,
+    private val skipSsrfCheck: Boolean = false
 ) {
     private val httpClient: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofMillis(connectTimeoutMs))
@@ -41,6 +42,12 @@ class SafeOutboundClient(
 
     fun validateTarget(uri: URI): OutboundResult<InetAddress> {
         val host = uri.host ?: return OutboundResult.Blocked("URL has no host")
+        if (skipSsrfCheck) {
+            val resolved = runCatching { InetAddress.getByName(host) }.getOrElse {
+                return OutboundResult.Failure(it)
+            }
+            return OutboundResult.Success(resolved)
+        }
         if (isIpLiteralHost(host)) {
             return OutboundResult.Blocked("IP literal hosts are not allowed: $host")
         }
@@ -58,6 +65,19 @@ class SafeOutboundClient(
         bodyHandler: HttpResponse.BodyHandler<T>,
         timeoutMs: Long? = null
     ): OutboundResult<HttpResponse<T>> {
+        if (skipSsrfCheck) {
+            val effectiveRequest = if (timeoutMs != null) {
+                HttpRequest.newBuilder(request.uri())
+                    .method(request.method(), request.bodyPublisher().orElse(HttpRequest.BodyPublishers.noBody()))
+                    .timeout(Duration.ofMillis(timeoutMs))
+                    .also { b -> request.headers().map().forEach { (name, values) -> values.forEach { b.header(name, it) } } }
+                    .build()
+            } else request
+            return runCatching { httpClient.send(effectiveRequest, bodyHandler) }.fold(
+                onSuccess = { OutboundResult.Success(it) },
+                onFailure = { OutboundResult.Failure(it) }
+            )
+        }
         val uri = request.uri()
         return when (val validation = validateTarget(uri)) {
             is OutboundResult.Blocked -> validation

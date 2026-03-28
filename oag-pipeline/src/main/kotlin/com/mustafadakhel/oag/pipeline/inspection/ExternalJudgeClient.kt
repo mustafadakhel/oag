@@ -33,15 +33,18 @@ class ExternalJudgeClient(
     private val endpointUrl: String,
     private val timeoutMs: Long = DEFAULT_TIMEOUT_MS,
     private val signingSecret: String? = null,
-    private val maxResponseBytes: Int = DEFAULT_MAX_RESPONSE_BYTES
+    private val maxResponseBytes: Int = DEFAULT_MAX_RESPONSE_BYTES,
+    validateUrl: Boolean = true
 ) {
     private val endpointUri = URI(endpointUrl)
     private val responseJson = Json { ignoreUnknownKeys = true }
 
     init {
-        val validation = client.validateTarget(endpointUri)
-        require(validation is OutboundResult.Success) {
-            "Judge endpoint is not reachable: $endpointUrl"
+        if (validateUrl) {
+            val validation = client.validateTarget(endpointUri)
+            require(validation is OutboundResult.Success) {
+                "Judge endpoint is not reachable: $endpointUrl"
+            }
         }
     }
 
