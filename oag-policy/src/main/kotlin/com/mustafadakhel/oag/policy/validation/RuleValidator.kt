@@ -59,6 +59,10 @@ internal fun PolicyRule.validate(base: String, validMethods: Set<String>): List<
     if (skipHallucinationCheck == true && hallucinationCheck != null) {
         add(ValidationError("$base.skip_hallucination_check", "Cannot set both skip_hallucination_check and hallucination_check"))
     }
+    topicClassification?.validate("$base.topic_classification")?.forEach { add(it) }
+    if (skipTopicClassification == true && topicClassification != null) {
+        add(ValidationError("$base.skip_topic_classification", "Cannot set both skip_topic_classification and topic_classification"))
+    }
     if (pluginDetection?.detectorIds?.isEmpty() == true) {
         add(ValidationError("$base.plugin_detection.detector_ids", "Empty detector_ids list silently disables all detection; omit the field or use skip_plugin_detection"))
     }

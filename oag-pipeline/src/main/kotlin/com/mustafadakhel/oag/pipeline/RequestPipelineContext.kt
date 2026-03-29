@@ -11,6 +11,7 @@ import com.mustafadakhel.oag.audit.AuditResponseRewrite
 import com.mustafadakhel.oag.audit.AuditSecrets
 import com.mustafadakhel.oag.audit.AuditStructuredPayload
 import com.mustafadakhel.oag.audit.AuditTokenUsage
+import com.mustafadakhel.oag.audit.AuditTopicClassification
 import com.mustafadakhel.oag.audit.AuditTrace
 import com.mustafadakhel.oag.audit.AuditWebSocketSession
 import com.mustafadakhel.oag.label
@@ -196,7 +197,16 @@ private fun buildAuditEvent(
         agentProfile = effAgentProfileId,
         phaseTimings = phaseTimings,
         dryRunOverride = dryRunOverride,
-        tokenUsage = outcome.tokenUsage
+        tokenUsage = outcome.tokenUsage,
+        topicClassification = context.outputs.getOrNull(com.mustafadakhel.oag.pipeline.phase.TopicClassificationPhase)?.let {
+            AuditTopicClassification(
+                topic = it.topic,
+                confidence = it.confidence,
+                action = it.action.label(),
+                endpointLatencyMs = it.endpointLatencyMs,
+                error = it.error
+            )
+        }
     )
 }
 
