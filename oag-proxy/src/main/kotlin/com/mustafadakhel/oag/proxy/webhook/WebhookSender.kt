@@ -33,7 +33,8 @@ enum class WebhookEventType {
     CREDENTIAL_DETECTED,
     INTEGRITY_DRIFT,
     ADMIN_DENIED,
-    HALLUCINATION_DETECTED;
+    HALLUCINATION_DETECTED,
+    SCHEMA_VALIDATION_FAILED;
 
     companion object {
         private val BY_LABEL = entries.associateBy { it.label() }
