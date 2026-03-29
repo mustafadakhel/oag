@@ -42,6 +42,7 @@ import com.mustafadakhel.oag.pipeline.phase.TransferEncodingPhase
 import com.mustafadakhel.oag.pipeline.phase.VelocitySpikePhase
 import com.mustafadakhel.oag.enforcement.CircuitBreakerRegistry
 import com.mustafadakhel.oag.inspection.injection.InjectionClassifier
+import com.mustafadakhel.oag.pipeline.inspection.JudgeInvoker
 import com.mustafadakhel.oag.secrets.SecretMaterializer
 
 fun buildHttpPipeline(
@@ -56,7 +57,8 @@ fun buildHttpPipeline(
     circuitBreakerRegistry: CircuitBreakerRegistry?,
     detectorRegistry: DetectorRegistry = DetectorRegistry.empty(),
     mlClassifier: InjectionClassifier? = null,
-    topicClassifierClient: TopicClassifierClient? = null
+    topicClassifierClient: TopicClassifierClient? = null,
+    judgeInvoker: JudgeInvoker? = null
 ): Pipeline = Pipeline(name = "http", stageSet = StageSet.REQUEST, phases = buildList {
     if (config.requestId.injectRequestId) add(RequestIdPhase())
     if (sessionRequestTracker != null) add(VelocitySpikePhase(sessionRequestTracker))
@@ -72,7 +74,7 @@ fun buildHttpPipeline(
     add(RateLimitPhase(rateLimiterRegistry))
     add(AgentProfilePhase(rateLimiterRegistry))
     add(BodyBufferPhase(policyService))
-    add(ContentInspectionPhase(policyService, sessionRequestTracker, mlClassifier))
+    add(ContentInspectionPhase(policyService, sessionRequestTracker, mlClassifier, judgeInvoker))
     if (topicClassifierClient != null) add(TopicClassificationPhase(policyService, topicClassifierClient))
     add(CredentialsPhase(policyService))
     add(DataClassificationPhase(policyService))
@@ -137,7 +139,8 @@ fun buildMitmPipeline(
     circuitBreakerRegistry: CircuitBreakerRegistry? = null,
     detectorRegistry: DetectorRegistry = DetectorRegistry.empty(),
     mlClassifier: InjectionClassifier? = null,
-    topicClassifierClient: TopicClassifierClient? = null
+    topicClassifierClient: TopicClassifierClient? = null,
+    judgeInvoker: JudgeInvoker? = null
 ): Pipeline = Pipeline(name = "mitm", stageSet = StageSet.REQUEST, phases = buildList {
     add(RequestIdPhase())
     if (sessionRequestTracker != null) add(VelocitySpikePhase(sessionRequestTracker))
@@ -146,7 +149,7 @@ fun buildMitmPipeline(
     add(RateLimitPhase(rateLimiterRegistry))
     add(AgentProfilePhase(rateLimiterRegistry))
     add(BodyBufferPhase(policyService))
-    add(ContentInspectionPhase(policyService, sessionRequestTracker, mlClassifier))
+    add(ContentInspectionPhase(policyService, sessionRequestTracker, mlClassifier, judgeInvoker))
     if (topicClassifierClient != null) add(TopicClassificationPhase(policyService, topicClassifierClient))
     add(CredentialsPhase(policyService))
     add(DataClassificationPhase(policyService))

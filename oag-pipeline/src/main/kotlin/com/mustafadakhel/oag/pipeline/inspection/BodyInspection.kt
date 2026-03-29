@@ -47,6 +47,16 @@ import com.mustafadakhel.oag.pipeline.relay.bufferRequestBody
 
 private const val ESCALATION_BOOST_FACTOR = 1.5
 
+private fun buildJudgeCallContext(context: RequestPipelineContext): JudgeCallContext? {
+    val bodyText = context.bufferedBodyText ?: return null
+    return JudgeCallContext(
+        requestBody = bodyText.sanitizeForJudge(),
+        host = context.target.host,
+        path = context.target.path,
+        method = context.request.method
+    )
+}
+
 private fun buildInspectionDenyExtras(
     context: RequestPipelineContext,
     contentInspection: AuditContentInspection
@@ -77,21 +87,23 @@ class BodyBufferPhase(
 class ContentInspectionPhase(
     private val policyService: PolicyService,
     private val sessionRequestTracker: SessionRequestTracker?,
-    private val mlClassifier: InjectionClassifier? = null
+    private val mlClassifier: InjectionClassifier? = null,
+    private val judgeInvoker: JudgeInvoker? = null
 ) : GatePhase, AuditEnrichable {
     companion object : PhaseKey<ContentInspectionResult>
     override val stage = PipelineStage.INSPECT
     override val name = "content_inspection"
     override val skipWhenPolicyDenied = true
     override fun evaluate(context: RequestPipelineContext): PhaseOutcome<Unit> =
-        checkContentInspectionPhase(context, policyService, sessionRequestTracker, mlClassifier)
+        checkContentInspectionPhase(context, policyService, sessionRequestTracker, mlClassifier, judgeInvoker)
             .applySuppressionIfDenied(context, policyService, FindingType.PROMPT_INJECTION, "builtin:content_inspection")
 
     override fun enrichAudit(context: RequestPipelineContext) {
         val bodyText = context.bufferedBodyText ?: return
         val defaults = policyService.current.defaults
         val config = resolveContentInspection(context.matchedRule, defaults) ?: return
-        val result = checkContentInspection(bodyText, config, policyService, mlClassifier) { msg -> context.debugLog { msg } }
+        val judgeCtx = buildJudgeCallContext(context)
+        val result = checkContentInspection(bodyText, config, policyService, mlClassifier, judgeInvoker, judgeCtx) { msg -> context.debugLog { msg } }
         context.outputs.put(ContentInspectionPhase, result)
     }
 }
@@ -281,7 +293,8 @@ fun checkContentInspectionPhase(
     context: RequestPipelineContext,
     policyService: PolicyService,
     sessionRequestTracker: SessionRequestTracker?,
-    mlClassifier: InjectionClassifier? = null
+    mlClassifier: InjectionClassifier? = null,
+    judgeInvoker: JudgeInvoker? = null
 ): PhaseOutcome<Unit> {
     val bodyText = context.bufferedBodyText ?: run {
         context.debugLog { "content inspection skipped: no buffered body for ${context.target.host}${context.target.path}" }
@@ -293,7 +306,8 @@ fun checkContentInspectionPhase(
         return PhaseOutcome.Continue(Unit)
     }
 
-    val inspectionResult = checkContentInspection(bodyText, effectiveContentInspection, policyService, mlClassifier) { msg -> context.debugLog { msg } }
+    val judgeCtx = buildJudgeCallContext(context)
+    val inspectionResult = checkContentInspection(bodyText, effectiveContentInspection, policyService, mlClassifier, judgeInvoker, judgeCtx) { msg -> context.debugLog { msg } }
 
     val sessionId = context.config.params.sessionId
     val injScore = inspectionResult.injectionScore

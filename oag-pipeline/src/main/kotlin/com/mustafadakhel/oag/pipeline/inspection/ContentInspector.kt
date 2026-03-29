@@ -38,13 +38,70 @@ fun checkContentInspection(
     inspection: PolicyContentInspection,
     policyService: PolicyService,
     mlClassifier: InjectionClassifier? = null,
+    judgeInvoker: JudgeInvoker? = null,
+    judgeContext: JudgeCallContext? = null,
     onError: (String) -> Unit = defaultInspectionErrorHandler
 ): ContentInspectionResult {
     val scoringConfig = policyService.current.defaults?.injectionScoring
-    if (scoringConfig?.mode == InjectionScoringMode.SCORE) {
-        return checkContentInspectionScored(body, inspection, scoringConfig, mlClassifier, onError)
+    val baseResult = if (scoringConfig?.mode == InjectionScoringMode.SCORE) {
+        checkContentInspectionScored(body, inspection, scoringConfig, mlClassifier, onError)
+    } else {
+        checkContentInspectionBinary(body, inspection, onError)
     }
-    return checkContentInspectionBinary(body, inspection, onError)
+    return if (judgeInvoker != null && judgeContext != null) {
+        runJudgeIfTriggered(baseResult, judgeInvoker, judgeContext, policyService, onError)
+    } else baseResult
+}
+
+private fun runJudgeIfTriggered(
+    baseResult: ContentInspectionResult,
+    judgeInvoker: JudgeInvoker,
+    judgeContext: JudgeCallContext,
+    policyService: PolicyService,
+    onError: (String) -> Unit
+): ContentInspectionResult {
+    val judgeConfig = policyService.current.defaults?.externalJudge ?: return baseResult
+    val triggerMode = judgeConfig.triggerMode ?: "always"
+    val shouldTrigger = when (triggerMode) {
+        "always" -> true
+        "uncertain_only" -> baseResult.decision == null
+        else -> false
+    }
+    if (!shouldTrigger) return baseResult
+
+    val enrichedContext = judgeContext.copy(injectionScore = baseResult.injectionScore)
+    val judgeResult = runCatching {
+        judgeInvoker.invoke(enrichedContext)
+    }.getOrElse { e ->
+        onError("external judge failed: ${e.message}")
+        val onErrorPolicy = judgeConfig.onError ?: "skip"
+        return if (onErrorPolicy == "deny") {
+            baseResult.copy(
+                decision = PolicyDecision(
+                    action = PolicyAction.DENY,
+                    ruleId = null,
+                    reasonCode = ReasonCode.INJECTION_DETECTED
+                ),
+                judge = JudgeResult(score = 0.0, decision = JudgeDecision.ABSTAIN, source = "external", latencyMs = 0, error = e.message)
+            )
+        } else baseResult.copy(
+            judge = JudgeResult(score = 0.0, decision = JudgeDecision.ABSTAIN, source = "external", latencyMs = 0, error = e.message)
+        )
+    }
+
+    val denyThreshold = judgeConfig.denyThreshold ?: 0.5
+    val effectiveDecision = if (judgeResult.decision == JudgeDecision.DENY || judgeResult.score >= denyThreshold) {
+        PolicyDecision(
+            action = PolicyAction.DENY,
+            ruleId = null,
+            reasonCode = ReasonCode.INJECTION_DETECTED
+        )
+    } else baseResult.decision
+
+    return baseResult.copy(
+        decision = effectiveDecision,
+        judge = judgeResult
+    )
 }
 
 fun matchCustomAndAnchoredPatterns(

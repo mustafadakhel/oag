@@ -1,4 +1,4 @@
-package com.mustafadakhel.oag.pipeline
+package com.mustafadakhel.oag.pipeline.inspection
 
 import com.mustafadakhel.oag.CryptoConstants
 import com.mustafadakhel.oag.OutboundResult
@@ -6,41 +6,20 @@ import com.mustafadakhel.oag.SafeOutboundClient
 import com.mustafadakhel.oag.computeHmacSha256
 import com.mustafadakhel.oag.http.HttpConstants
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-fun interface TopicClassifierClient {
-    fun classify(request: TopicClassificationRequest): TopicClassificationResponse
-}
-
-class TopicClassificationException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
-
-@Serializable
-data class TopicClassificationRequest(
-    val text: String,
-    val topics: List<String>
-)
-
-@Serializable
-data class TopicClassificationResponse(
-    val topic: String?,
-    val confidence: Double
-)
-
-class ExternalTopicClassifierClient(
+class ExternalJudgeClient(
     private val client: SafeOutboundClient,
     private val endpointUrl: String,
-    private val timeoutMs: Long,
+    private val timeoutMs: Long = DEFAULT_TIMEOUT_MS,
     private val signingSecret: String? = null,
     private val maxResponseBytes: Int = DEFAULT_MAX_RESPONSE_BYTES,
     validateUrl: Boolean = true
-) : TopicClassifierClient {
-
+) {
     private val endpointUri = URI(endpointUrl)
     private val responseJson = Json { ignoreUnknownKeys = true }
 
@@ -48,12 +27,12 @@ class ExternalTopicClassifierClient(
         if (validateUrl) {
             val validation = client.validateTarget(endpointUri)
             require(validation is OutboundResult.Success) {
-                "Topic classification endpoint is not reachable: $endpointUrl"
+                "Judge endpoint is not reachable: $endpointUrl"
             }
         }
     }
 
-    override fun classify(request: TopicClassificationRequest): TopicClassificationResponse {
+    fun invoke(request: JudgeRequest): JudgeResult {
         val bodyText = responseJson.encodeToString(request)
         val bodyBytes = bodyText.toByteArray(Charsets.UTF_8)
 
@@ -67,33 +46,46 @@ class ExternalTopicClassifierClient(
         }
 
         val httpRequest = requestBuilder.build()
-        val result = client.execute(httpRequest, HttpResponse.BodyHandlers.ofInputStream(), timeoutMs)
+        val startMs = System.currentTimeMillis()
 
-        return when (result) {
-            is OutboundResult.Blocked ->
-                throw TopicClassificationException("Endpoint blocked: ${result.reason}")
-            is OutboundResult.Failure ->
-                throw TopicClassificationException("Endpoint request failed: ${result.error.message}", result.error)
+        return when (val result = client.execute(httpRequest, HttpResponse.BodyHandlers.ofInputStream(), timeoutMs)) {
+            is OutboundResult.Blocked -> {
+                val latency = System.currentTimeMillis() - startMs
+                JudgeResult(score = 0.0, decision = JudgeDecision.ABSTAIN, source = "external", latencyMs = latency, error = "blocked: ${result.reason}")
+            }
+            is OutboundResult.Failure -> {
+                val latency = System.currentTimeMillis() - startMs
+                JudgeResult(score = 0.0, decision = JudgeDecision.ABSTAIN, source = "external", latencyMs = latency, error = result.error.message)
+            }
             is OutboundResult.Success -> {
+                val latency = System.currentTimeMillis() - startMs
                 val response = result.value
                 if (response.statusCode() !in 200..299) {
-                    throw TopicClassificationException("Endpoint returned HTTP ${response.statusCode()}")
+                    return JudgeResult(score = 0.0, decision = JudgeDecision.ABSTAIN, source = "external", latencyMs = latency, error = "HTTP ${response.statusCode()}")
                 }
                 val bytes = response.body().readNBytes(maxResponseBytes + 1)
                 if (bytes.size > maxResponseBytes) {
-                    throw TopicClassificationException("Response exceeds max size of $maxResponseBytes bytes")
+                    return JudgeResult(score = 0.0, decision = JudgeDecision.ABSTAIN, source = "external", latencyMs = latency, error = "response exceeds $maxResponseBytes bytes")
                 }
                 val responseText = String(bytes, Charsets.UTF_8)
-                runCatching {
-                    responseJson.decodeFromString<TopicClassificationResponse>(responseText)
+                val judgeResponse = runCatching {
+                    responseJson.decodeFromString<JudgeResponse>(responseText)
                 }.getOrElse {
-                    throw TopicClassificationException("Invalid response JSON: ${it.message}", it)
+                    return JudgeResult(score = 0.0, decision = JudgeDecision.ABSTAIN, source = "external", latencyMs = latency, error = "invalid response JSON: ${it.message}")
                 }
+                JudgeResult(
+                    score = judgeResponse.score.coerceIn(0.0, 1.0),
+                    decision = JudgeDecision.fromLabel(judgeResponse.decision),
+                    source = "external",
+                    latencyMs = latency,
+                    reason = judgeResponse.reason
+                )
             }
         }
     }
 
     companion object {
+        private const val DEFAULT_TIMEOUT_MS = 5_000L
         private const val DEFAULT_MAX_RESPONSE_BYTES = 65_536
     }
 }

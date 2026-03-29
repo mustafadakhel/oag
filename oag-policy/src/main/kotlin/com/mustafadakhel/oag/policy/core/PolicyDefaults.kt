@@ -24,6 +24,7 @@ data class PolicyDefaults(
     @SerialName("plugin_detection") val pluginDetection: PolicyPluginDetection? = null,
     @SerialName("hallucination_check") val hallucinationCheck: PolicyHallucinationCheck? = null,
     @SerialName("topic_classification") val topicClassification: PolicyTopicClassification? = null,
+    @SerialName("external_judge") val externalJudge: PolicyExternalJudge? = null,
     @SerialName("finding_suppressions") val findingSuppressions: List<PolicyFindingSuppression>? = null
 )
 

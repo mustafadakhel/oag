@@ -1,19 +1,3 @@
-/*
- * Copyright 2026 Mustafa Dakhel
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.mustafadakhel.oag.pipeline.phase
 
 import com.mustafadakhel.oag.pipeline.PhaseOutcome
@@ -79,6 +63,15 @@ class TopicClassificationPhaseTest {
 
     private fun failingClient(): TopicClassifierClient =
         TopicClassifierClient { throw TopicClassificationException("connection timeout") }
+
+    private fun capturingClient(): Pair<TopicClassifierClient, MutableList<String>> {
+        val captured = mutableListOf<String>()
+        val client = TopicClassifierClient { request ->
+            captured.add(request.text)
+            TopicClassificationResponse(topic = "finance", confidence = 0.9)
+        }
+        return client to captured
+    }
 
     @Test
     fun `denied topic returns Deny with TOPIC_DENIED`() {
@@ -225,6 +218,51 @@ class TopicClassificationPhaseTest {
         val ctx = buildTestContext(bodyText = """{"messages":[{"role":"user","content":"test"}]}""")
         val outcome = phase.evaluate(ctx)
         assertIs<PhaseOutcome.Continue<Unit>>(outcome)
+    }
+
+    @Test
+    fun `circuit breaker open triggers deny with default on_error`() {
+        val service = policyServiceWith(deniedTopics = listOf("violence"))
+        val breaker = CircuitBreakerCheck { false }
+        val phase = TopicClassificationPhase(service, mockClient("finance"), breaker)
+        val ctx = buildTestContext(bodyText = """{"messages":[{"role":"user","content":"test"}]}""")
+        val outcome = phase.evaluate(ctx)
+        assertIs<PhaseOutcome.Deny>(outcome)
+    }
+
+    @Test
+    fun `circuit breaker open with on_error allow continues`() {
+        val path = writePolicy(
+            "version: 1\n" +
+            "defaults:\n" +
+            "  action: allow\n" +
+            "  topic_classification:\n" +
+            "    enabled: true\n" +
+            "    endpoint_url: \"https://classifier.example.com/api\"\n" +
+            "    denied_topics: [\"violence\"]\n" +
+            "    on_error: allow\n" +
+            "allow:\n" +
+            "  - id: rule_1\n" +
+            "    host: \"*.example.com\"\n"
+        )
+        val service = PolicyService(path)
+        val breaker = CircuitBreakerCheck { false }
+        val phase = TopicClassificationPhase(service, mockClient("finance"), breaker)
+        val ctx = buildTestContext(bodyText = """{"messages":[{"role":"user","content":"test"}]}""")
+        val outcome = phase.evaluate(ctx)
+        assertIs<PhaseOutcome.Continue<Unit>>(outcome)
+    }
+
+    @Test
+    fun `user-turn text preferred over full body`() {
+        val service = policyServiceWith(deniedTopics = listOf("violence"))
+        val (client, captured) = capturingClient()
+        val phase = TopicClassificationPhase(service, client)
+        val body = """{"messages":[{"role":"user","content":"user question here"}]}"""
+        val ctx = buildTestContext(bodyText = body)
+        phase.evaluate(ctx)
+        assertEquals(1, captured.size)
+        assertEquals("user question here", captured[0])
     }
 
     @Test
