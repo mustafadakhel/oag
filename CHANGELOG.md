@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### License
+
+- Relicense from Business Source License 1.1 to Apache License 2.0
+
 ## 0.1.11
 
 ### Performance

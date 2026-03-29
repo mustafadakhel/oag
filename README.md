@@ -111,8 +111,4 @@ HTTPS_PROXY=http://127.0.0.1:8080
 
 ## License
 
-Licensed under the [Business Source License 1.1](LICENSE).
-
-Free for individuals, non-profits, education, research, and internal use by organizations securing their own AI agents. Commercial use by organizations with >$1M annual revenue requires a [commercial license](mailto:licensing@mustafadakhel.com).
-
-Converts to Apache 2.0 on 2030-03-15.
+Licensed under the [Apache License 2.0](LICENSE).
