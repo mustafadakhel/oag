@@ -13,6 +13,11 @@ data class ClaimContradiction(
     val newValue: String
 )
 
+data class ScoredTurn(
+    val turnIndex: Long,
+    val score: Double
+)
+
 data class VelocitySnapshot(
     val sessionRequestsPerSecond: Double,
     val spikeDetected: Boolean
@@ -20,7 +25,9 @@ data class VelocitySnapshot(
 
 data class InjectionTrendSnapshot(
     val scores: List<Double>,
-    val escalating: Boolean
+    val escalating: Boolean,
+    val scoredTurns: List<ScoredTurn> = emptyList(),
+    val totalTurnCount: Long = 0
 )
 
 private fun detectEscalation(scores: List<Double>): Boolean {
@@ -55,12 +62,18 @@ class SessionRequestTracker(
     }
 
     fun recordInjectionScore(sessionId: String, score: Double) {
-        if (score <= 0.0) return
         sessions.withLock {
             val state = getOrPut(sessionId) { SessionState() }
-            state.injectionScoreHistory.add(score)
-            if (state.injectionScoreHistory.size > maxScoreHistory) {
-                state.injectionScoreHistory.removeFirst()
+            state.totalTurnCount++
+            state.scoredTurns.add(ScoredTurn(turnIndex = state.totalTurnCount, score = score))
+            if (state.scoredTurns.size > maxScoreHistory) {
+                state.scoredTurns.removeFirst()
+            }
+            if (score > 0.0) {
+                state.injectionScoreHistory.add(score)
+                if (state.injectionScoreHistory.size > maxScoreHistory) {
+                    state.injectionScoreHistory.removeFirst()
+                }
             }
         }
     }
@@ -70,7 +83,12 @@ class SessionRequestTracker(
             ?: return@withLock InjectionTrendSnapshot(scores = emptyList(), escalating = false)
         val scores = state.injectionScoreHistory.toList()
         val escalating = detectEscalation(scores)
-        InjectionTrendSnapshot(scores = scores, escalating = escalating)
+        InjectionTrendSnapshot(
+            scores = scores,
+            escalating = escalating,
+            scoredTurns = state.scoredTurns.toList(),
+            totalTurnCount = state.totalTurnCount
+        )
     }
 
     fun velocity(sessionId: String, spikeThreshold: Double = Double.MAX_VALUE): VelocitySnapshot = sessions.withLock {
@@ -148,6 +166,8 @@ class SessionRequestTracker(
     private class SessionState {
         val bodyHashes = ArrayDeque<String>()
         val injectionScoreHistory = ArrayDeque<Double>()
+        val scoredTurns = ArrayDeque<ScoredTurn>()
+        var totalTurnCount: Long = 0
         val requestTimestamps = ArrayDeque<Long>()
         val hostTimestamps = mutableMapOf<String, ArrayDeque<Long>>()
         val claimFingerprints = mutableMapOf<String, String>()

@@ -42,7 +42,8 @@ data class PolicyInjectionScoring(
     @SerialName("log_threshold") val logThreshold: Double? = null,
     @SerialName("entropy_weight") val entropyWeight: Double? = null,
     @SerialName("entropy_baseline") val entropyBaseline: Double? = null,
-    @SerialName("category_weights") val categoryWeights: List<PolicyCategoryWeight>? = null
+    @SerialName("category_weights") val categoryWeights: List<PolicyCategoryWeight>? = null,
+    val escalation: PolicyEscalation? = null
 )
 
 @Serializable
@@ -123,4 +124,23 @@ data class PolicyHallucinationCheck(
     @SerialName("external_endpoint_timeout_ms") val externalEndpointTimeoutMs: Int? = null,
     @SerialName("external_endpoint_signing_secret") val externalEndpointSigningSecret: String? = null,
     @SerialName("on_timeout") val onTimeout: TimeoutAction? = null
+)
+
+@Serializable
+data class PolicyEscalation(
+    val enabled: Boolean? = null,
+    @SerialName("window_size") val windowSize: Int? = null,
+    @SerialName("deny_patterns") val denyPatterns: List<String>? = null
+)
+
+@Serializable
+data class PolicyExternalJudge(
+    val enabled: Boolean? = null,
+    @SerialName("endpoint_url") val endpointUrl: String? = null,
+    @SerialName("signing_secret") val signingSecret: String? = null,
+    @SerialName("timeout_ms") val timeoutMs: Int? = null,
+    @SerialName("trigger_mode") val triggerMode: String? = null,
+    @SerialName("on_error") val onError: String? = null,
+    @SerialName("deny_threshold") val denyThreshold: Double? = null,
+    @SerialName("max_response_bytes") val maxResponseBytes: Int? = null
 )

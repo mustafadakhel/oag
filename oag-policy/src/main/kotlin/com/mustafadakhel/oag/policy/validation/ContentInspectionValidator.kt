@@ -1,9 +1,12 @@
 package com.mustafadakhel.oag.policy.validation
 
+import com.mustafadakhel.oag.EscalationPattern
 import com.mustafadakhel.oag.label
 import com.mustafadakhel.oag.policy.core.InjectionCategory
 import com.mustafadakhel.oag.policy.core.PolicyContentInspection
 import com.mustafadakhel.oag.policy.core.PolicyDataClassification
+import com.mustafadakhel.oag.policy.core.PolicyEscalation
+import com.mustafadakhel.oag.policy.core.PolicyExternalJudge
 import com.mustafadakhel.oag.policy.core.PolicyInjectionScoring
 import com.mustafadakhel.oag.policy.core.PolicyMlClassifier
 import com.mustafadakhel.oag.policy.core.PolicyUrlInspection
@@ -52,6 +55,27 @@ internal fun PolicyInjectionScoring.validate(base: String): List<ValidationError
         }
         if (cw.weight < 0.0) {
             add(ValidationError("$base.category_weights[$index].weight", "Must not be negative"))
+        }
+    }
+    escalation?.validate("$base.escalation")?.forEach { add(it) }
+}
+
+private val VALID_ESCALATION_PATTERNS = EscalationPattern.entries.map { it.label() }.toSet()
+private const val MIN_ESCALATION_WINDOW = 3
+private const val MAX_ESCALATION_WINDOW = 100
+
+internal fun PolicyEscalation.validate(base: String): List<ValidationError> = buildList {
+    if (windowSize != null) {
+        if (windowSize < MIN_ESCALATION_WINDOW) {
+            add(ValidationError("$base.window_size", "Must be at least $MIN_ESCALATION_WINDOW"))
+        }
+        if (windowSize > MAX_ESCALATION_WINDOW) {
+            add(ValidationError("$base.window_size", "Must not exceed $MAX_ESCALATION_WINDOW"))
+        }
+    }
+    denyPatterns?.forEachIndexed { index, pattern ->
+        if (pattern.lowercase(Locale.ROOT) !in VALID_ESCALATION_PATTERNS) {
+            add(ValidationError("$base.deny_patterns[$index]", "Unknown pattern '$pattern'. Valid: ${VALID_ESCALATION_PATTERNS.sorted().joinToString()}"))
         }
     }
 }
