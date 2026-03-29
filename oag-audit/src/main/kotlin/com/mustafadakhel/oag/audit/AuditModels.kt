@@ -115,7 +115,18 @@ data class AuditContentInspection(
     @SerialName("log_finding_count") val logFindingCount: Int? = null,
     @SerialName("injection_escalating") val injectionEscalating: Boolean? = null,
     @SerialName("streaming_plugin_detector_ids") val streamingPluginDetectorIds: List<String>? = null,
-    @SerialName("streaming_plugin_finding_count") val streamingPluginFindingCount: Int? = null
+    @SerialName("streaming_plugin_finding_count") val streamingPluginFindingCount: Int? = null,
+    @SerialName("hallucination_score") val hallucinationScore: Double? = null,
+    @SerialName("hallucination_signals") val hallucinationSignals: List<AuditHallucinationSignal>? = null,
+    @SerialName("hallucination_mode") val hallucinationMode: String? = null,
+    @SerialName("hallucination_bypassed_streaming") val hallucinationBypassedStreaming: Boolean? = null
+)
+
+@Serializable
+data class AuditHallucinationSignal(
+    val name: String,
+    val score: Double,
+    val details: String? = null
 )
 
 @Serializable

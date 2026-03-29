@@ -7,6 +7,12 @@ import com.mustafadakhel.oag.MS_PER_SECOND
 import java.security.MessageDigest
 import java.time.Clock
 
+data class ClaimContradiction(
+    val claimKey: String,
+    val previousValue: String,
+    val newValue: String
+)
+
 data class VelocitySnapshot(
     val sessionRequestsPerSecond: Double,
     val spikeDetected: Boolean
@@ -28,6 +34,8 @@ class SessionRequestTracker(
     private val maxScoreHistory: Int = DEFAULT_MAX_SCORE_HISTORY,
     private val velocityWindowMs: Long = DEFAULT_VELOCITY_WINDOW_MS,
     private val maxSessions: Int = DEFAULT_MAX_LRU_ENTRIES,
+    private val maxClaimHistory: Int = DEFAULT_MAX_CLAIM_HISTORY,
+    private val maxToolExcerpts: Int = DEFAULT_MAX_TOOL_EXCERPTS,
     private val clock: Clock = Clock.systemUTC()
 ) {
     private val sessions = ConcurrentLruMap<String, SessionState>(maxSessions)
@@ -79,6 +87,47 @@ class SessionRequestTracker(
         )
     }
 
+    fun recordClaims(sessionId: String, responseText: String, trusted: Boolean = true) = sessions.withLock {
+        val state = getOrPut(sessionId) { SessionState() }
+        if (!trusted) return@withLock
+        val claims = extractClaimFingerprints(responseText)
+        for ((key, value) in claims) {
+            state.claimFingerprints[key] = value
+        }
+        if (state.claimFingerprints.size > maxClaimHistory) {
+            val keysToRemove = state.claimFingerprints.keys.take(state.claimFingerprints.size - maxClaimHistory)
+            keysToRemove.forEach { state.claimFingerprints.remove(it) }
+        }
+    }
+
+    fun detectContradictions(sessionId: String, responseText: String): List<ClaimContradiction> = sessions.withLock {
+        val state = this[sessionId]
+            ?: return@withLock emptyList()
+        val newClaims = extractClaimFingerprints(responseText)
+        buildList {
+            for ((key, newValue) in newClaims) {
+                val existingValue = state.claimFingerprints[key] ?: continue
+                if (existingValue != newValue) {
+                    add(ClaimContradiction(key, existingValue, newValue))
+                }
+            }
+        }
+    }
+
+    fun recordToolResponse(sessionId: String, requestKey: String, excerpt: String) = sessions.withLock {
+        val state = getOrPut(sessionId) { SessionState() }
+        state.toolResponseExcerpts[requestKey] = excerpt.take(MAX_EXCERPT_LENGTH)
+        if (state.toolResponseExcerpts.size > maxToolExcerpts) {
+            val keysToRemove = state.toolResponseExcerpts.keys.take(state.toolResponseExcerpts.size - maxToolExcerpts)
+            keysToRemove.forEach { state.toolResponseExcerpts.remove(it) }
+        }
+    }
+
+    fun getToolExcerpts(sessionId: String): Map<String, String> = sessions.withLock {
+        val state = this[sessionId] ?: return@withLock emptyMap()
+        state.toolResponseExcerpts.toMap()
+    }
+
     fun clear() = sessions.clear()
 
     private fun pruneTimestamps(state: SessionState, nowMs: Long) {
@@ -101,12 +150,17 @@ class SessionRequestTracker(
         val injectionScoreHistory = ArrayDeque<Double>()
         val requestTimestamps = ArrayDeque<Long>()
         val hostTimestamps = mutableMapOf<String, ArrayDeque<Long>>()
+        val claimFingerprints = mutableMapOf<String, String>()
+        val toolResponseExcerpts = mutableMapOf<String, String>()
     }
 
     companion object {
         private const val DEFAULT_MAX_BODY_HASH_HISTORY = 64
         private const val DEFAULT_MAX_SCORE_HISTORY = 64
         private const val DEFAULT_VELOCITY_WINDOW_MS = 60_000L
+        private const val DEFAULT_MAX_CLAIM_HISTORY = 256
+        private const val DEFAULT_MAX_TOOL_EXCERPTS = 64
+        private const val MAX_EXCERPT_LENGTH = 512
 
         private const val BODY_HASH_PREFIX_LENGTH = 16
 
@@ -117,3 +171,36 @@ class SessionRequestTracker(
         }
     }
 }
+
+private val URL_CLAIM_PATTERN = Regex("""(https?://[^\s<>"']+)""")
+private val VERSION_CLAIM_PATTERN = Regex("""(\w+(?:\.\w+)*)\s+(?:v(?:ersion)?\s*)?(\d+(?:\.\d+)+)""")
+private val NUMERIC_ASSERTION_PATTERN = Regex("""(?:is|are|was|were|equals?|approximately|about)\s+(\d+(?:[.,]\d+)?)""")
+
+internal fun extractClaimFingerprints(text: String): Map<String, String> {
+    val claims = mutableMapOf<String, String>()
+
+    URL_CLAIM_PATTERN.findAll(text).take(MAX_CLAIMS_PER_TEXT).forEach { match ->
+        val url = match.groupValues[1].trimEnd('.', ',', ')', ']')
+        claims["url:$url"] = url
+    }
+
+    VERSION_CLAIM_PATTERN.findAll(text).take(MAX_CLAIMS_PER_TEXT).forEach { match ->
+        val name = match.groupValues[1].lowercase()
+        val version = match.groupValues[2]
+        claims["version:$name"] = version
+    }
+
+    NUMERIC_ASSERTION_PATTERN.findAll(text).take(MAX_CLAIMS_PER_TEXT).forEach { match ->
+        val context = text.substring(
+            maxOf(0, match.range.first - ASSERTION_CONTEXT_CHARS),
+            minOf(text.length, match.range.last + 1)
+        ).trim().lowercase()
+        val value = match.groupValues[1]
+        claims["numeric:$context"] = value
+    }
+
+    return claims
+}
+
+private const val MAX_CLAIMS_PER_TEXT = 50
+private const val ASSERTION_CONTEXT_CHARS = 30

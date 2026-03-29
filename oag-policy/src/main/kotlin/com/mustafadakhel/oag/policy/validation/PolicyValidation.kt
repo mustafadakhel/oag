@@ -71,6 +71,7 @@ private fun PolicyDefaults.validate(): List<ValidationError> = buildList {
     if (pluginDetection?.detectorIds?.isEmpty() == true) {
         add(ValidationError("defaults.plugin_detection.detector_ids", "Empty detector_ids list silently disables all detection; omit the field instead"))
     }
+    hallucinationCheck?.validate("defaults.hallucination_check")?.forEach { add(it) }
     findingSuppressions?.forEachIndexed { index, suppression ->
         if (suppression.detectorId == null && suppression.findingType == null && suppression.pattern == null) {
             add(ValidationError("defaults.finding_suppressions[$index]", "At least one of detector_id, finding_type, or pattern must be set"))

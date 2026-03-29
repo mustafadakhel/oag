@@ -36,6 +36,8 @@ data class PolicyRule(
     @SerialName("payload_match") val payloadMatch: List<PolicyPayloadMatch>? = null,
     @SerialName("plugin_detection") val pluginDetection: PolicyPluginDetection? = null,
     @SerialName("skip_plugin_detection") val skipPluginDetection: Boolean? = null,
+    @SerialName("hallucination_check") val hallucinationCheck: PolicyHallucinationCheck? = null,
+    @SerialName("skip_hallucination_check") val skipHallucinationCheck: Boolean? = null,
     @SerialName("finding_suppressions") val findingSuppressions: List<PolicyFindingSuppression>? = null,
     @SerialName("webhook_events") val webhookEvents: List<String>? = null
 )

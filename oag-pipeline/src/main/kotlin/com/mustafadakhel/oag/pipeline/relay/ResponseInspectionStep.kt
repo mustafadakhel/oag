@@ -31,6 +31,8 @@ class BufferedInspectionContext(
     val statusCode: Int,
     val contentType: String?,
     val matchedRule: PolicyRule?,
+    val requestBodyText: String? = null,
+    val sessionId: String? = null,
     val onError: (String) -> Unit,
     val accumulator: InspectionAccumulator = InspectionAccumulator()
 )
@@ -45,4 +47,14 @@ class InspectionAccumulator {
     val auditEntries: MutableList<AuditResponseRewrite> = mutableListOf()
     var dataClassification: DataClassificationResult? = null
     var pluginFindings: ResponseScanResult? = null
+    var hallucinationScore: Double? = null
+    var hallucinationSignals: List<HallucinationSignalResult>? = null
+    var hallucinationMode: String? = null
+    var hallucinationBypassedStreaming: Boolean? = null
 }
+
+data class HallucinationSignalResult(
+    val name: String,
+    val score: Double,
+    val details: String? = null
+)

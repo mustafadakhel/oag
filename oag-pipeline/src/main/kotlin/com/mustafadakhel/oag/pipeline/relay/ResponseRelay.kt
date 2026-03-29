@@ -19,7 +19,10 @@ import com.mustafadakhel.oag.enforcement.TokenUsageExtractor
 import com.mustafadakhel.oag.inspection.InspectionContext
 import com.mustafadakhel.oag.inspection.ResponseTextBody
 import com.mustafadakhel.oag.inspection.spi.DetectorRegistry
+import com.mustafadakhel.oag.enforcement.SessionRequestTracker
 import com.mustafadakhel.oag.policy.core.PolicyDataClassification
+import com.mustafadakhel.oag.policy.core.PolicyDefaults
+import com.mustafadakhel.oag.policy.core.PolicyHallucinationCheck
 import com.mustafadakhel.oag.pipeline.HostResolver
 import com.mustafadakhel.oag.pipeline.inspection.resolveResponseDataClassification
 import com.mustafadakhel.oag.pipeline.inspection.scanStreamingResponseBody
@@ -53,7 +56,13 @@ internal class ResponseInspectionPlan(
     val redact: Boolean,
     val bodyMatch: PolicyBodyMatch?,
     val pluginScan: Boolean,
-    val dataClassification: PolicyDataClassification?
+    val dataClassification: PolicyDataClassification?,
+    val hallucinationCheck: PolicyHallucinationCheck? = null,
+    val claimMatcher: ImpossibleClaimMatcher? = null,
+    val urlVerifier: UrlVerifier? = null,
+    val packageVerifier: PackageVerifier? = null,
+    val sessionTracker: SessionRequestTracker? = null,
+    val externalVerifier: ExternalVerifier? = null
 )
 
 data class HttpHeader(val name: String, val value: String)
@@ -73,6 +82,11 @@ class ResponseRelayer(
     private val networkConfig: NetworkConfig,
     private val dryRun: Boolean = false,
     private val detectorRegistry: DetectorRegistry = DetectorRegistry.empty(),
+    private val claimMatcher: ImpossibleClaimMatcher? = null,
+    private val urlVerifier: UrlVerifier? = null,
+    private val packageVerifier: PackageVerifier? = null,
+    private val sessionTracker: SessionRequestTracker? = null,
+    private val externalVerifier: ExternalVerifier? = null,
     private val onError: (String) -> Unit = defaultRelayErrorHandler
 ) {
     suspend fun relay(
@@ -81,6 +95,7 @@ class ResponseRelayer(
         request: HttpRequest,
         requestTarget: ParsedTarget,
         matchedRule: PolicyRule?,
+        requestBodyText: String? = null,
         responseRewriteAuditCollector: MutableList<AuditResponseRewrite>? = null,
         preReadStatusLine: String? = null
     ): ResponseRelayResult {
@@ -103,6 +118,7 @@ class ResponseRelayer(
             upstreamIn = upstreamIn,
             clientOutput = clientOutput,
             matchedRule = matchedRule,
+            requestBodyText = requestBodyText,
             redirectChain = redirectResult.redirectChain,
             responseRewriteAuditCollector = responseRewriteAuditCollector
         )
@@ -154,6 +170,7 @@ class ResponseRelayer(
         upstreamIn: InputStream,
         clientOutput: OutputStream,
         matchedRule: PolicyRule?,
+        requestBodyText: String?,
         redirectChain: List<AuditRedirectHop>,
         responseRewriteAuditCollector: MutableList<AuditResponseRewrite>?
     ): RelayState {
@@ -172,6 +189,7 @@ class ResponseRelayer(
             forwardedHeaders = forwardedHeaders,
             framing = framing,
             matchedRule = matchedRule,
+            requestBodyText = requestBodyText,
             responseMatch = responseMatch,
             redirectChain = redirectChain
         )
@@ -195,13 +213,26 @@ class ResponseRelayer(
         val pluginScanResponses = (state.matchedRule?.pluginDetection ?: defaults?.pluginDetection)?.scanResponses == true
         val hasResponsePlugins = pluginScanResponses && detectorRegistry.registrationsFor(ResponseTextBody::class.java).isNotEmpty()
         val responseDataClass = resolveResponseDataClassification(state.matchedRule, defaults)
-        if (!hasBodyRedact && state.responseMatch == null && !hasResponsePlugins && responseDataClass == null) return null
+        val hallucinationCheck = resolveHallucinationCheck(state.matchedRule, defaults)
+        if (!hasBodyRedact && state.responseMatch == null && !hasResponsePlugins && responseDataClass == null && hallucinationCheck == null) return null
         return ResponseInspectionPlan(
             redact = hasBodyRedact,
             bodyMatch = state.responseMatch,
             pluginScan = hasResponsePlugins,
-            dataClassification = responseDataClass
+            dataClassification = responseDataClass,
+            hallucinationCheck = hallucinationCheck,
+            claimMatcher = if (hallucinationCheck != null) claimMatcher else null,
+            urlVerifier = if (hallucinationCheck?.urlVerification == true) urlVerifier else null,
+            packageVerifier = if (hallucinationCheck?.packageVerification == true) packageVerifier else null,
+            sessionTracker = if (hallucinationCheck != null) sessionTracker else null,
+            externalVerifier = if (hallucinationCheck?.externalEndpointUrl != null) externalVerifier else null
         )
+    }
+
+    private fun resolveHallucinationCheck(matchedRule: PolicyRule?, defaults: PolicyDefaults?): PolicyHallucinationCheck? {
+        if (matchedRule?.skipHallucinationCheck == true) return null
+        val config = matchedRule?.hallucinationCheck ?: defaults?.hallucinationCheck ?: return null
+        return if (config.enabled == true) config else null
     }
 
     private fun isBufferable(state: RelayState): Boolean {
@@ -226,6 +257,7 @@ class ResponseRelayer(
             statusCode = state.statusCode,
             contentType = contentType,
             matchedRule = state.matchedRule,
+            requestBodyText = state.requestBodyText,
             onError = onError
         )
         val chain = buildInspectionChain(plan, state.matchedRule, detectorRegistry)
@@ -248,7 +280,11 @@ class ResponseRelayer(
                         redactionActions = acc.redactionActions,
                         connectionReusable = !state.headers.hasConnectionClose(),
                         responsePluginFindings = acc.pluginFindings,
-                        responseDataClassification = acc.dataClassification
+                        responseDataClassification = acc.dataClassification,
+                        hallucinationScore = acc.hallucinationScore,
+                        hallucinationSignals = acc.hallucinationSignals,
+                        hallucinationMode = acc.hallucinationMode,
+                        hallucinationBypassedStreaming = acc.hallucinationBypassedStreaming
                     )
                 } else {
                     writeDenied(state.clientOutput)
@@ -257,7 +293,11 @@ class ResponseRelayer(
                         statusCode = HttpStatus.FORBIDDEN.code,
                         decisionOverride = outcome.decision,
                         redirectChain = state.redirectChain,
-                        redactionActions = acc.redactionActions
+                        redactionActions = acc.redactionActions,
+                        hallucinationScore = acc.hallucinationScore,
+                        hallucinationSignals = acc.hallucinationSignals,
+                        hallucinationMode = acc.hallucinationMode,
+                        hallucinationBypassedStreaming = acc.hallucinationBypassedStreaming
                     )
                 }
             }
@@ -284,7 +324,11 @@ class ResponseRelayer(
                     connectionReusable = !state.headers.hasConnectionClose(),
                     tokenUsage = TokenUsageExtractor.extract(outcome.bodyText),
                     responsePluginFindings = acc.pluginFindings,
-                    responseDataClassification = acc.dataClassification
+                    responseDataClassification = acc.dataClassification,
+                    hallucinationScore = acc.hallucinationScore,
+                    hallucinationSignals = acc.hallucinationSignals,
+                    hallucinationMode = acc.hallucinationMode,
+                    hallucinationBypassedStreaming = acc.hallucinationBypassedStreaming
                 )
             }
         }
@@ -301,6 +345,7 @@ class ResponseRelayer(
         val forwardedHeaders: List<HttpHeader>,
         val framing: ResponseFraming,
         val matchedRule: PolicyRule?,
+        val requestBodyText: String?,
         val responseMatch: PolicyBodyMatch?,
         val redirectChain: List<AuditRedirectHop>
     )

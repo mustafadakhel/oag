@@ -1,0 +1,303 @@
+# Impossible Claims Pattern Database for Hallucination Detection
+#
+# Each category contains patterns that match factually impossible statements.
+# Patterns use two modes:
+#   - contains: plain text substring match (fast, via Aho-Corasick)
+#   - regex: anchored regex match (for structured patterns like version numbers)
+#
+# Categories:
+#   versions   — nonexistent software versions
+#   models     — nonexistent AI model names or versions
+#   dates      — impossible dates or temporal claims
+#   standards  — nonexistent RFC/standard numbers or versions
+#   geography  — impossible geographic claims
+#   science    — impossible scientific claims
+#   companies  — impossible corporate claims
+#   urls       — commonly hallucinated URL structures
+
+versions:
+  contains:
+    # Python versions that don't exist
+    - "Python 4."
+    - "Python 3.20"
+    - "Python 3.19"
+    - "Python 3.18"
+    - "Python 3.17"
+    - "Python 3.16"
+    - "Python 3.15"
+    - "Python 2.8"
+    - "Python 2.9"
+    # Java versions that don't exist (as of 2026)
+    - "Java 26"
+    - "Java 27"
+    - "Java 28"
+    - "Java 29"
+    - "Java 30"
+    # Node.js versions that don't exist
+    - "Node.js 25"
+    - "Node.js 26"
+    - "Node.js 27"
+    - "Node.js 28"
+    - "Node.js 29"
+    - "Node.js 30"
+    - "Node 25"
+    - "Node 26"
+    - "Node 27"
+    # Go versions that don't exist
+    - "Go 1.30"
+    - "Go 1.29"
+    - "Go 1.28"
+    - "Go 1.27"
+    - "Go 2."
+    # Rust versions that don't exist
+    - "Rust 2."
+    - "Rust 1.90"
+    - "Rust 1.95"
+    # Kotlin versions
+    - "Kotlin 3."
+    - "Kotlin 2.5"
+    - "Kotlin 2.4"
+    - "Kotlin 2.3"
+    # TypeScript versions
+    - "TypeScript 7."
+    - "TypeScript 8."
+    - "TypeScript 9."
+    # React versions
+    - "React 20"
+    - "React 21"
+    - "React 22"
+    # Angular versions
+    - "Angular 22"
+    - "Angular 23"
+    - "Angular 24"
+    - "Angular 25"
+    # PostgreSQL
+    - "PostgreSQL 20"
+    - "PostgreSQL 21"
+    - "PostgreSQL 22"
+    # MySQL
+    - "MySQL 10."
+    - "MySQL 11."
+    # Redis
+    - "Redis 10."
+    - "Redis 11."
+    # Kubernetes
+    - "Kubernetes 2."
+    - "Kubernetes 1.40"
+    - "Kubernetes 1.39"
+    - "Kubernetes 1.38"
+    # Docker
+    - "Docker 30."
+    - "Docker 29."
+    - "Docker 28."
+    # Gradle
+    - "Gradle 10."
+    - "Gradle 11."
+    # Maven
+    - "Maven 5."
+    - "Maven 6."
+    # Nginx
+    - "nginx 2."
+    - "Nginx 2."
+    # Apache HTTP
+    - "Apache 3."
+    - "httpd 3."
+    # Spring Boot
+    - "Spring Boot 5."
+    - "Spring Boot 6."
+    # Django
+    - "Django 7."
+    - "Django 8."
+    # Ruby
+    - "Ruby 4."
+    - "Ruby 5."
+    # PHP
+    - "PHP 10."
+    - "PHP 11."
+    # Swift
+    - "Swift 7."
+    - "Swift 8."
+    # .NET
+    - ".NET 12."
+    - ".NET 13."
+    - ".NET 14."
+    # Linux kernel
+    - "Linux 7."
+    - "Linux 8."
+    - "kernel 7."
+    - "kernel 8."
+    # TLS/SSL
+    - "TLS 1.4"
+    - "TLS 1.5"
+    - "TLS 2.0"
+    - "SSL 4.0"
+    # HTTP
+    - "HTTP/3.1"
+    - "HTTP/4"
+    - "HTTP/4.0"
+
+  regex:
+    # Semantic version patterns for known ranges
+    - "Python 3\\.1[5-9]\\."
+    - "Node(?:\\.js)? v?2[5-9]\\."
+    - "Go 1\\.2[7-9]\\."
+
+models:
+  contains:
+    # OpenAI models that don't exist
+    - "GPT-6"
+    - "GPT-7"
+    - "GPT-8"
+    - "GPT-5-turbo"
+    - "GPT-5 turbo"
+    - "o4-mini"
+    - "o4-preview"
+    - "o5"
+    - "o6"
+    - "DALL-E 4"
+    - "DALL-E 5"
+    - "Whisper v4"
+    - "Whisper v5"
+    # Anthropic models that don't exist
+    - "Claude 5"
+    - "Claude 6"
+    - "Claude 7"
+    - "claude-5"
+    - "claude-6"
+    - "claude-opus-5"
+    - "claude-sonnet-5"
+    # Google models
+    - "Gemini 3"
+    - "Gemini 4"
+    - "PaLM 3"
+    - "PaLM 4"
+    - "Bard 2"
+    # Meta models
+    - "LLaMA 5"
+    - "LLaMA 6"
+    - "Llama 5"
+    - "Llama 6"
+    # Mistral
+    - "Mistral Large 3"
+    - "Mistral Large 4"
+    # Cohere
+    - "Command R3"
+    - "Command R4"
+
+dates:
+  contains:
+    # Months that don't exist
+    - "13th month"
+    - "14th month"
+    # Impossible day counts
+    - "February 30"
+    - "February 31"
+    - "April 31"
+    - "June 31"
+    - "September 31"
+    - "November 31"
+    # Far future claims presented as fact
+    - "was released in 2030"
+    - "was released in 2031"
+    - "was released in 2032"
+    - "launched in 2030"
+    - "launched in 2031"
+    - "launched in 2032"
+    - "published in 2030"
+    - "published in 2031"
+    - "since 2030"
+    - "since 2031"
+    - "introduced in 2030"
+    - "introduced in 2031"
+
+  regex:
+    # February 30/31 in date formats
+    - "02[/-]3[01][/-]"
+    - "2\\d{3}[/-]02[/-]3[01]"
+    # April/June/Sept/Nov 31 in date formats
+    - "(?:04|06|09|11)[/-]31[/-]"
+
+standards:
+  contains:
+    # Nonexistent HTTP status codes
+    - "HTTP 209"
+    - "HTTP 215"
+    - "HTTP 219"
+    - "HTTP 309"
+    - "HTTP 310"
+    - "HTTP 430"
+    - "HTTP 460"
+    - "HTTP 509"
+    - "HTTP 520"
+    - "HTTP 530"
+    # Nonexistent well-known RFCs (using ranges known to be unassigned)
+    - "RFC 99999"
+    - "RFC 88888"
+    # Nonexistent ISO standards
+    - "ISO 99999"
+    - "ISO 88888"
+    # Nonexistent IEEE standards
+    - "IEEE 802.99"
+    - "IEEE 802.88"
+
+geography:
+  contains:
+    # Impossible geographic claims
+    - "capital of Africa"
+    - "capital of Europe"
+    - "capital of Asia"
+    - "capital of South America"
+    - "capital of North America"
+    - "capital of Oceania"
+    - "capital of Antarctica"
+    - "the country of Africa"
+    - "the country of Europe"
+    - "the country of Asia"
+
+science:
+  contains:
+    # Impossible scientific claims
+    - "speed of light is approximately 300,000 km/s in water"
+    - "absolute zero is 0 degrees Celsius"
+    - "absolute zero is 0 degrees Fahrenheit"
+    - "water boils at 100°C at all altitudes"
+    - "humans have 24 pairs of chromosomes"
+    - "humans have 48 chromosomes"
+    - "the Sun orbits the Earth"
+    - "sound travels faster than light"
+
+companies:
+  contains:
+    # Impossible corporate claims
+    - "Google was founded in 2000"
+    - "Google was founded in 2001"
+    - "Google was founded in 1996"
+    - "Google was founded in 1997"
+    - "Apple was founded in 1974"
+    - "Apple was founded in 1975"
+    - "Apple was founded in 1977"
+    - "Apple was founded in 1978"
+    - "Microsoft was founded in 1973"
+    - "Microsoft was founded in 1974"
+    - "Microsoft was founded in 1976"
+    - "Microsoft was founded in 1977"
+    - "Amazon was founded in 1993"
+    - "Amazon was founded in 1992"
+    - "Amazon was founded in 1995"
+    - "Amazon was founded in 1996"
+
+urls:
+  contains:
+    # Commonly hallucinated documentation URLs
+    - "docs.python.org/4/"
+    - "docs.python.org/5/"
+    - "nodejs.org/api/v25"
+    - "nodejs.org/api/v26"
+    # Hallucinated package registries
+    - "pypi.org/project/openai-gpt5"
+    - "pypi.org/project/gpt5"
+    - "npmjs.com/package/gpt-5"
+    # Hallucinated GitHub repos
+    - "github.com/openai/gpt-5"
+    - "github.com/openai/gpt-6"
+    - "github.com/google/gemini-3"

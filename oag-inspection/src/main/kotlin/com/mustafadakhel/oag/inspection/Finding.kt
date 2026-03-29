@@ -19,7 +19,8 @@ enum class FindingType {
     STRUCTURED_PAYLOAD,
     BODY_MATCH,
     REDIRECT_TARGET,
-    CUSTOM
+    CUSTOM,
+    HALLUCINATION
 }
 
 enum class FindingSeverity {
