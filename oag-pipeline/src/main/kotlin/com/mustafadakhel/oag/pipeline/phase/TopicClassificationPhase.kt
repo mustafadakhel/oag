@@ -12,6 +12,7 @@ import com.mustafadakhel.oag.pipeline.TopicClassificationException
 import com.mustafadakhel.oag.pipeline.TopicClassificationRequest
 import com.mustafadakhel.oag.pipeline.TopicClassifierClient
 import com.mustafadakhel.oag.pipeline.extractUserTurnText
+import com.mustafadakhel.oag.policy.core.PolicyAction
 import com.mustafadakhel.oag.policy.core.PolicyDecision
 import com.mustafadakhel.oag.policy.core.PolicyDefaults
 import com.mustafadakhel.oag.policy.core.PolicyRule
@@ -59,7 +60,7 @@ class TopicClassificationPhase(
             TopicClassificationAction.DENIED, TopicClassificationAction.ERROR_DENY ->
                 PhaseOutcome.Deny(
                     decision = PolicyDecision(
-                        action = com.mustafadakhel.oag.policy.core.PolicyAction.DENY,
+                        action = PolicyAction.DENY,
                         ruleId = context.matchedRule?.id,
                         reasonCode = ReasonCode.TOPIC_DENIED
                     ),

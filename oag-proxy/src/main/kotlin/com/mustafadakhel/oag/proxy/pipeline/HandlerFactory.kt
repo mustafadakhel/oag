@@ -51,6 +51,13 @@ import com.mustafadakhel.oag.enforcement.CircuitBreakerRegistry
 import com.mustafadakhel.oag.enforcement.ConnectionPool
 import com.mustafadakhel.oag.proxy.tls.CaBundle
 import com.mustafadakhel.oag.proxy.tls.HostCertificateCache
+import com.mustafadakhel.oag.SafeOutboundClient
+import com.mustafadakhel.oag.pipeline.ExternalTopicClassifierClient
+import com.mustafadakhel.oag.pipeline.TopicClassifierClient
+import com.mustafadakhel.oag.pipeline.inspection.ExternalJudgeClient
+import com.mustafadakhel.oag.pipeline.inspection.JudgeCallContext
+import com.mustafadakhel.oag.pipeline.inspection.JudgeInvoker
+import com.mustafadakhel.oag.pipeline.inspection.JudgeRequest
 import com.mustafadakhel.oag.secrets.SecretMaterializer
 import com.mustafadakhel.oag.telemetry.DebugLogger
 import com.mustafadakhel.oag.telemetry.OagMetrics
@@ -156,6 +163,39 @@ internal fun buildFullProxyHandler(
         )
     }
 
+    val topicClassifierClient: TopicClassifierClient? = policyService.current.defaults?.topicClassification?.let { topicConfig ->
+        val endpointUrl = topicConfig.endpointUrl
+        if (topicConfig.enabled != true || endpointUrl == null) return@let null
+        runCatching {
+            ExternalTopicClassifierClient(
+                client = SafeOutboundClient(connectTimeoutMs = (topicConfig.endpointTimeoutMs ?: DEFAULT_TOPIC_TIMEOUT_MS).toLong()),
+                endpointUrl = endpointUrl,
+                timeoutMs = (topicConfig.endpointTimeoutMs ?: DEFAULT_TOPIC_TIMEOUT_MS).toLong(),
+                signingSecret = topicConfig.signingSecret,
+                maxResponseBytes = DEFAULT_MAX_RESPONSE_BYTES
+            )
+        }.onFailure { e ->
+            debugLogger.log("topic classification client construction failed: ${e.message}")
+        }.getOrNull()
+    }
+
+    val judgeInvoker: JudgeInvoker? = policyService.current.defaults?.externalJudge?.let { judgeConfig ->
+        val endpointUrl = judgeConfig.endpointUrl
+        if (judgeConfig.enabled != true || endpointUrl == null) return@let null
+        val client = runCatching {
+            ExternalJudgeClient(
+                client = SafeOutboundClient(connectTimeoutMs = (judgeConfig.timeoutMs ?: DEFAULT_JUDGE_TIMEOUT_MS).toLong()),
+                endpointUrl = endpointUrl,
+                timeoutMs = (judgeConfig.timeoutMs ?: DEFAULT_JUDGE_TIMEOUT_MS).toLong(),
+                signingSecret = judgeConfig.signingSecret,
+                maxResponseBytes = judgeConfig.maxResponseBytes ?: DEFAULT_MAX_RESPONSE_BYTES
+            )
+        }.onFailure { e ->
+            debugLogger.log("external judge client construction failed: ${e.message}")
+        }.getOrNull() ?: return@let null
+        JudgeInvoker { ctx -> client.invoke(ctx.toJudgeRequest()) }
+    }
+
     val httpPipeline = buildHttpPipeline(
         config = config,
         policyService = policyService,
@@ -167,7 +207,9 @@ internal fun buildFullProxyHandler(
         secretMaterializer = secretMaterializer,
         circuitBreakerRegistry = circuitBreakerRegistry,
         detectorRegistry = detectorRegistry,
-        mlClassifier = mlClassifier
+        mlClassifier = mlClassifier,
+        topicClassifierClient = topicClassifierClient,
+        judgeInvoker = judgeInvoker
     )
     val connectPipeline = buildConnectPipeline(
         config = config,
@@ -221,7 +263,9 @@ internal fun buildFullProxyHandler(
         secretMaterializer = secretMaterializer,
         circuitBreakerRegistry = circuitBreakerRegistry,
         detectorRegistry = detectorRegistry,
-        mlClassifier = mlClassifier
+        mlClassifier = mlClassifier,
+        topicClassifierClient = topicClassifierClient,
+        judgeInvoker = judgeInvoker
     )
     val mitmRelay: RequestRelay? = if (hostCertificateCache != null && caBundle != null) {
         buildMitmRelay(
@@ -258,3 +302,15 @@ internal fun buildFullProxyHandler(
 
     return buildProxyHandler(httpPath, connectPath, contextFactory, parseErrorHandler, debugLogger, metrics, clock)
 }
+
+private const val DEFAULT_TOPIC_TIMEOUT_MS = 5_000
+private const val DEFAULT_JUDGE_TIMEOUT_MS = 5_000
+private const val DEFAULT_MAX_RESPONSE_BYTES = 65_536
+
+private fun JudgeCallContext.toJudgeRequest() = JudgeRequest(
+    requestBody = requestBody,
+    host = host,
+    path = path,
+    method = method,
+    injectionScore = injectionScore
+)

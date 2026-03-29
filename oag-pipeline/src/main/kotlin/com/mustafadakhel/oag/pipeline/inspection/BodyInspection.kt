@@ -2,6 +2,7 @@ package com.mustafadakhel.oag.pipeline.inspection
 
 import com.mustafadakhel.oag.PipelineStage
 import com.mustafadakhel.oag.audit.AuditContentInspection
+import com.mustafadakhel.oag.audit.AuditExternalJudge
 import com.mustafadakhel.oag.inspection.EvidenceKey
 import com.mustafadakhel.oag.inspection.Finding
 import com.mustafadakhel.oag.inspection.FindingLocation
@@ -366,7 +367,17 @@ fun checkContentInspectionPhase(
                 injectionEscalating = effectiveEscalating.takeIf { it },
                 escalationPattern = escalationResult?.pattern?.label(),
                 escalationWindowScores = escalationResult?.windowScores?.takeIf { it.isNotEmpty() },
-                escalationWindowSize = escalationResult?.windowSize?.takeIf { escalationResult.detected }
+                escalationWindowSize = escalationResult?.windowSize?.takeIf { escalationResult.detected },
+                externalJudge = effectiveResult.judge?.let {
+                    AuditExternalJudge(
+                        score = it.score,
+                        decision = it.decision.name.lowercase(),
+                        source = it.source,
+                        latencyMs = it.latencyMs,
+                        reason = it.reason,
+                        error = it.error
+                    )
+                }
             )),
             enforcementActions = listOf(
                 EnforcementAction.Notify(

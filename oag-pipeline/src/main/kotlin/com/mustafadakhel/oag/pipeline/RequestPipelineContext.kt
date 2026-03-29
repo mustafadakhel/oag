@@ -12,6 +12,7 @@ import com.mustafadakhel.oag.audit.AuditSecrets
 import com.mustafadakhel.oag.audit.AuditStructuredPayload
 import com.mustafadakhel.oag.audit.AuditTokenUsage
 import com.mustafadakhel.oag.audit.AuditTopicClassification
+import com.mustafadakhel.oag.pipeline.phase.TopicClassificationPhase
 import com.mustafadakhel.oag.audit.AuditTrace
 import com.mustafadakhel.oag.audit.AuditWebSocketSession
 import com.mustafadakhel.oag.label
@@ -198,7 +199,7 @@ private fun buildAuditEvent(
         phaseTimings = phaseTimings,
         dryRunOverride = dryRunOverride,
         tokenUsage = outcome.tokenUsage,
-        topicClassification = context.outputs.getOrNull(com.mustafadakhel.oag.pipeline.phase.TopicClassificationPhase)?.let {
+        topicClassification = context.outputs.getOrNull(TopicClassificationPhase)?.let {
             AuditTopicClassification(
                 topic = it.topic,
                 confidence = it.confidence,
