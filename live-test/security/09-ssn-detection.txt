@@ -1,0 +1,4 @@
+Patient record for John Doe:
+Social Security Number: 123-45-6789
+Date of birth: 1990-01-15
+Please update the insurance file.

@@ -1,26 +1,78 @@
 bundle_version: 1
-created_at: "2026-03-26T12:35:54.662389200Z"
+created_at: "2026-04-03T07:40:17.356145400Z"
 policy:
   version: 1
   includes: null
   defaults:
     action: "DENY"
-    max_body_bytes: null
-    enforce_dns_resolution: null
-    url_inspection: null
-    block_dns_exfiltration: null
-    dns_entropy_threshold: null
+    max_body_bytes: 1048576
+    enforce_dns_resolution: true
+    url_inspection:
+      max_query_length: 2048
+      block_base64_values: true
+      entropy_threshold: 4.5
+      min_value_length: null
+      max_url_length: 4096
+      max_path_length: null
+      path_entropy_threshold: null
+      block_path_traversal: true
+      block_double_encoding: true
+      block_invalid_percent_encoding: null
+    block_dns_exfiltration: true
+    dns_entropy_threshold: 4.0
     dns_min_label_length: null
-    content_inspection: null
+    content_inspection:
+      enable_builtin_patterns: true
+      custom_patterns: null
+      anchored_patterns: null
+      scan_streaming_responses: null
+      scan_websocket_frames: null
     max_response_scan_bytes: null
     max_bytes_per_host_per_session: null
     scan_streaming_responses: null
-    injection_scoring: null
+    injection_scoring:
+      mode: "SCORE"
+      deny_threshold: 0.2
+      log_threshold: null
+      entropy_weight: null
+      entropy_baseline: null
+      category_weights: null
+      escalation:
+        enabled: true
+        window_size: 5
+        deny_patterns:
+        - "sustained_elevation"
+        - "crescendo"
     ml_classifier: null
-    outbound_credential_detection: null
-    data_classification: null
+    outbound_credential_detection: true
+    data_classification:
+      enable_builtin_patterns: true
+      custom_patterns: null
+      categories: null
+      scan_responses: null
     max_tokens_per_session: null
     plugin_detection: null
+    hallucination_check:
+      enabled: true
+      mode: "OBSERVE"
+      deny_threshold: 0.8
+      log_threshold: 0.3
+      impossible_claims: true
+      impossible_claims_path: null
+      url_verification: false
+      url_verification_allowlist: null
+      package_verification: false
+      package_registry_mirror: null
+      logprob_analysis: true
+      claim_contradiction: null
+      tool_receipt_verification: null
+      signal_weights: null
+      external_endpoint_url: null
+      external_endpoint_timeout_ms: null
+      external_endpoint_signing_secret: null
+      on_timeout: null
+    topic_classification: null
+    external_judge: null
     finding_suppressions: null
   allow:
   - id: "allow_httpbin"
@@ -29,44 +81,6 @@ policy:
     - "GET"
     - "POST"
     - "PUT"
-    - "PATCH"
-    - "DELETE"
-    paths: null
-    secrets: null
-    ip_ranges: null
-    max_body_bytes: null
-    conditions: null
-    reason_code: null
-    rate_limit:
-      requests_per_second: 10.0
-      burst: 20
-    body_match: null
-    response_body_match: null
-    content_inspection: null
-    skip_content_inspection: null
-    skip_response_scanning: null
-    tls_inspect: null
-    header_rewrites: null
-    connect_timeout_ms: null
-    read_timeout_ms: null
-    retry: null
-    header_match: null
-    query_match: null
-    tags: null
-    error_response: null
-    skip_outbound_credential_detection: null
-    data_classification: null
-    skip_data_classification: null
-    response_rewrites: null
-    payload_match: null
-    plugin_detection: null
-    skip_plugin_detection: null
-    finding_suppressions: null
-    webhook_events: null
-  - id: "allow_example"
-    host: "example.com"
-    methods:
-    - "GET"
     paths: null
     secrets: null
     ip_ranges: null
@@ -95,6 +109,51 @@ policy:
     payload_match: null
     plugin_detection: null
     skip_plugin_detection: null
+    hallucination_check: null
+    skip_hallucination_check: null
+    topic_classification: null
+    skip_topic_classification: null
+    schema_validation: null
+    finding_suppressions: null
+    webhook_events: null
+  - id: "allow_postman"
+    host: "postman-echo.com"
+    methods:
+    - "GET"
+    - "POST"
+    paths: null
+    secrets: null
+    ip_ranges: null
+    max_body_bytes: null
+    conditions: null
+    reason_code: null
+    rate_limit: null
+    body_match: null
+    response_body_match: null
+    content_inspection: null
+    skip_content_inspection: null
+    skip_response_scanning: null
+    tls_inspect: null
+    header_rewrites: null
+    connect_timeout_ms: null
+    read_timeout_ms: null
+    retry: null
+    header_match: null
+    query_match: null
+    tags: null
+    error_response: null
+    skip_outbound_credential_detection: null
+    data_classification: null
+    skip_data_classification: null
+    response_rewrites: null
+    payload_match: null
+    plugin_detection: null
+    skip_plugin_detection: null
+    hallucination_check: null
+    skip_hallucination_check: null
+    topic_classification: null
+    skip_topic_classification: null
+    schema_validation: null
     finding_suppressions: null
     webhook_events: null
   - id: "allow_jsonplaceholder"
@@ -130,13 +189,17 @@ policy:
     payload_match: null
     plugin_detection: null
     skip_plugin_detection: null
+    hallucination_check: null
+    skip_hallucination_check: null
+    topic_classification: null
+    skip_topic_classification: null
+    schema_validation: null
     finding_suppressions: null
     webhook_events: null
-  - id: "allow_postman_echo"
-    host: "postman-echo.com"
+  - id: "allow_example"
+    host: "example.com"
     methods:
     - "GET"
-    - "POST"
     paths: null
     secrets: null
     ip_ranges: null
@@ -165,6 +228,11 @@ policy:
     payload_match: null
     plugin_detection: null
     skip_plugin_detection: null
+    hallucination_check: null
+    skip_hallucination_check: null
+    topic_classification: null
+    skip_topic_classification: null
+    schema_validation: null
     finding_suppressions: null
     webhook_events: null
   deny:
@@ -199,6 +267,51 @@ policy:
     payload_match: null
     plugin_detection: null
     skip_plugin_detection: null
+    hallucination_check: null
+    skip_hallucination_check: null
+    topic_classification: null
+    skip_topic_classification: null
+    schema_validation: null
+    finding_suppressions: null
+    webhook_events: null
+  - id: "block_evil"
+    host: "evil.com"
+    methods: null
+    paths: null
+    secrets: null
+    ip_ranges: null
+    max_body_bytes: null
+    conditions: null
+    reason_code: null
+    rate_limit: null
+    body_match: null
+    response_body_match: null
+    content_inspection: null
+    skip_content_inspection: null
+    skip_response_scanning: null
+    tls_inspect: null
+    header_rewrites: null
+    connect_timeout_ms: null
+    read_timeout_ms: null
+    retry: null
+    header_match: null
+    query_match: null
+    tags:
+    - "security"
+    - "blocked"
+    error_response: null
+    skip_outbound_credential_detection: null
+    data_classification: null
+    skip_data_classification: null
+    response_rewrites: null
+    payload_match: null
+    plugin_detection: null
+    skip_plugin_detection: null
+    hallucination_check: null
+    skip_hallucination_check: null
+    topic_classification: null
+    skip_topic_classification: null
+    schema_validation: null
     finding_suppressions: null
     webhook_events: null
   - id: "block_admin_paths"
@@ -237,6 +350,11 @@ policy:
     payload_match: null
     plugin_detection: null
     skip_plugin_detection: null
+    hallucination_check: null
+    skip_hallucination_check: null
+    topic_classification: null
+    skip_topic_classification: null
+    schema_validation: null
     finding_suppressions: null
     webhook_events: null
   - id: "block_sensitive"
@@ -272,47 +390,17 @@ policy:
     payload_match: null
     plugin_detection: null
     skip_plugin_detection: null
-    finding_suppressions: null
-    webhook_events: null
-  - id: "block_evil"
-    host: "evil.com"
-    methods: null
-    paths: null
-    secrets: null
-    ip_ranges: null
-    max_body_bytes: null
-    conditions: null
-    reason_code: null
-    rate_limit: null
-    body_match: null
-    response_body_match: null
-    content_inspection: null
-    skip_content_inspection: null
-    skip_response_scanning: null
-    tls_inspect: null
-    header_rewrites: null
-    connect_timeout_ms: null
-    read_timeout_ms: null
-    retry: null
-    header_match: null
-    query_match: null
-    tags:
-    - "security"
-    - "blocked"
-    error_response: null
-    skip_outbound_credential_detection: null
-    data_classification: null
-    skip_data_classification: null
-    response_rewrites: null
-    payload_match: null
-    plugin_detection: null
-    skip_plugin_detection: null
+    hallucination_check: null
+    skip_hallucination_check: null
+    topic_classification: null
+    skip_topic_classification: null
+    schema_validation: null
     finding_suppressions: null
     webhook_events: null
   secret_scopes: null
   agent_profiles: null
-policy_hash: "97069f9ac1001c5274c8e2a569861fd3efb85034c641d4cc6978806f13670547"
+policy_hash: "efb1810f540c6309a5963da05e19260ce48482fe536d82525e419fc9047f441c"
 signing:
   algorithm: "ed25519"
   key_id: null
-  signature: "+S/SPmDnU8lfQqz1le+WZQVAm2n/FZVdtb+dpOJNDY6OggBduSDqPp2FtQYfr5MGqWbTO005/+v5Tz7fviaJDw=="
+  signature: "Mt1aU05+pJ8Wiu1GbxLeaN0CyQYiNln0dCKsmEybygRvFRSox9ReO6D+ZJKRsw9Kc9dcOPF0Jtel8UJJM7yiDw=="

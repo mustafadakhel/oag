@@ -7,9 +7,9 @@ cases:
     request: "POST https://httpbin.org/post"
     expectAction: allow
 
-  - name: "httpbin DELETE allowed"
+  - name: "httpbin DELETE denied (method not in allow list)"
     request: "DELETE https://httpbin.org/delete"
-    expectAction: allow
+    expectAction: deny
 
   - name: "example.com GET allowed"
     request: "GET https://example.com/"

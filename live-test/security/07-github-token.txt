@@ -1,0 +1,3 @@
+Use this token to access the repository:
+ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij1234
+It has full repo scope.

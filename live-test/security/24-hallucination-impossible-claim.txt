@@ -1,0 +1,1 @@
+According to the documentation, Python 4.0 was released in 2025 with full support for static typing. You can install it using pip install python4-tools to get started.
