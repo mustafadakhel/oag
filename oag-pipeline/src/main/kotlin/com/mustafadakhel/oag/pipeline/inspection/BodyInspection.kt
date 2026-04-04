@@ -36,6 +36,7 @@ import com.mustafadakhel.oag.pipeline.HttpStatus
 import com.mustafadakhel.oag.pipeline.PhaseKey
 import com.mustafadakhel.oag.pipeline.PhaseOutcome
 import com.mustafadakhel.oag.pipeline.DEFAULT_BODY_BUFFER_LIMIT
+import com.mustafadakhel.oag.pipeline.hasFinalChunkedEncoding
 import com.mustafadakhel.oag.pipeline.AuditEnrichable
 import com.mustafadakhel.oag.pipeline.GatePhase
 import com.mustafadakhel.oag.pipeline.RequestPipelineContext
@@ -45,8 +46,10 @@ import com.mustafadakhel.oag.pipeline.webhookData
 import com.mustafadakhel.oag.pipeline.DEFAULT_DENY_THRESHOLD
 import com.mustafadakhel.oag.pipeline.denyPhase
 import com.mustafadakhel.oag.pipeline.relay.bufferRequestBody
+import com.mustafadakhel.oag.pipeline.relay.readChunkedBody
 
 private const val ESCALATION_BOOST_FACTOR = 1.5
+private const val CHUNKED_SENTINEL = -1L
 
 private fun buildJudgeCallContext(context: RequestPipelineContext): JudgeCallContext? {
     val bodyText = context.bufferedBodyText ?: return null
@@ -248,16 +251,21 @@ private fun resolveBufferableContentLength(
 
     val contentLength = context.request.headers[HttpConstants.CONTENT_LENGTH]?.toLongOrNull()
     val maxBodyBytes = rule.maxBodyBytes ?: defaults?.maxBodyBytes ?: DEFAULT_BODY_BUFFER_LIMIT
-    // Requests without Content-Length (chunked/connection-close) cannot be buffered.
-    // Per RFC 7230, no Content-Length + no Transfer-Encoding = zero-length body.
-    if (contentLength == null || contentLength <= 0) {
-        if (contentLength == null) {
-            context.debugLog { "body inspection skipped: no Content-Length for ${context.target.host}${context.target.path}" }
-        }
-        return null
+
+    if (contentLength != null && contentLength > 0) {
+        if (contentLength > maxBodyBytes) return null
+        return contentLength
     }
-    if (contentLength > maxBodyBytes) return null // handled by checkBodySizePhase
-    return contentLength
+
+    val transferEncoding = context.request.headers[HttpConstants.TRANSFER_ENCODING]
+    if (transferEncoding != null && transferEncoding.hasFinalChunkedEncoding()) {
+        return CHUNKED_SENTINEL
+    }
+
+    if (contentLength == null) {
+        context.debugLog { "body inspection skipped: no Content-Length or chunked encoding for ${context.target.host}${context.target.path}" }
+    }
+    return null
 }
 
 private fun bufferBody(
@@ -265,7 +273,12 @@ private fun bufferBody(
     contentLength: Long
 ) {
     val clientInput = requireNotNull(context.clientInput) { "clientInput must be set before body buffering phase" }
-    val bufferedBody = bufferRequestBody(clientInput, contentLength)
+    val bufferedBody = if (contentLength == CHUNKED_SENTINEL) {
+        val maxBytes = context.matchedRule?.maxBodyBytes ?: DEFAULT_BODY_BUFFER_LIMIT
+        readChunkedBody(clientInput, maxBytes) ?: return
+    } else {
+        bufferRequestBody(clientInput, contentLength)
+    }
     val bufferedBodyText = bufferedBody.toString(Charsets.UTF_8)
     val detectedPayload = detectStructuredPayload(
         bufferedBodyText,
