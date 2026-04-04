@@ -1,5 +1,7 @@
 package com.mustafadakhel.oag.pipeline.relay
 
+import com.mustafadakhel.oag.SafeOutboundClient
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -62,7 +64,7 @@ class UrlVerifierTest {
 
     @Test
     fun `SSRF prevention - private IPs rejected by SafeOutboundClient`() {
-        val client = com.mustafadakhel.oag.SafeOutboundClient()
+        val client = SafeOutboundClient()
         val verifier = UrlVerifier(client)
         val results = verifier.verify(listOf("http://127.0.0.1/admin"))
         assertEquals(1, results.size)
@@ -71,7 +73,7 @@ class UrlVerifierTest {
 
     @Test
     fun `allowlist skips verification for listed domains`() {
-        val client = com.mustafadakhel.oag.SafeOutboundClient()
+        val client = SafeOutboundClient()
         val verifier = UrlVerifier(client, allowlist = setOf("example.com"))
         val results = verifier.verify(listOf("https://example.com/page"))
         assertTrue(results.isEmpty(), "Allowlisted domain should be skipped")
@@ -79,7 +81,7 @@ class UrlVerifierTest {
 
     @Test
     fun `NXDOMAIN returns unreachable`() {
-        val client = com.mustafadakhel.oag.SafeOutboundClient()
+        val client = SafeOutboundClient()
         val verifier = UrlVerifier(client)
         val results = verifier.verify(listOf("https://this-domain-does-not-exist-oag-test.invalid/path"))
         assertEquals(1, results.size)

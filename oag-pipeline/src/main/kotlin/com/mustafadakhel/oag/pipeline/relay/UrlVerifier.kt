@@ -40,6 +40,12 @@ class UrlVerifier(
         val host = uri.host ?: return null
         if (host in allowlist) return null
 
+        when (val validation = client.validateTarget(uri)) {
+            is OutboundResult.Blocked -> return UrlVerificationResult(url, UrlStatus.BLOCKED)
+            is OutboundResult.Failure -> return UrlVerificationResult(url, UrlStatus.UNREACHABLE)
+            is OutboundResult.Success -> Unit
+        }
+
         val request = runCatching {
             HttpRequest.newBuilder(uri)
                 .method("HEAD", HttpRequest.BodyPublishers.noBody())

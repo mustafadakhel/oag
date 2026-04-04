@@ -103,7 +103,7 @@ class TopicClassifierClientTest {
             exchange.close()
         }
         val port = server.address.port
-        val safeClient = SafeOutboundClient(skipSsrfCheck = true)
+        val safeClient = SafeOutboundClient()
         val client = ExternalTopicClassifierClient(
             client = safeClient,
             endpointUrl = "http://127.0.0.1:$port/classify",
@@ -124,7 +124,7 @@ class TopicClassifierClientTest {
             exchange.close()
         }
         val port = server.address.port
-        val safeClient = SafeOutboundClient(skipSsrfCheck = true)
+        val safeClient = SafeOutboundClient()
         val client = ExternalTopicClassifierClient(
             client = safeClient,
             endpointUrl = "http://127.0.0.1:$port/classify",
@@ -145,7 +145,7 @@ class TopicClassifierClientTest {
             exchange.close()
         }
         val port = server.address.port
-        val safeClient = SafeOutboundClient(skipSsrfCheck = true)
+        val safeClient = SafeOutboundClient()
         val client = ExternalTopicClassifierClient(
             client = safeClient,
             endpointUrl = "http://127.0.0.1:$port/classify",
@@ -166,7 +166,7 @@ class TopicClassifierClientTest {
             exchange.close()
         }
         val port = server.address.port
-        val safeClient = SafeOutboundClient(skipSsrfCheck = true)
+        val safeClient = SafeOutboundClient()
         val client = ExternalTopicClassifierClient(
             client = safeClient,
             endpointUrl = "http://127.0.0.1:$port/classify",
@@ -185,7 +185,7 @@ class TopicClassifierClientTest {
             exchange.close()
         }
         val port = server.address.port
-        val safeClient = SafeOutboundClient(skipSsrfCheck = true)
+        val safeClient = SafeOutboundClient()
         val client = ExternalTopicClassifierClient(
             client = safeClient,
             endpointUrl = "http://127.0.0.1:$port/classify",
@@ -206,7 +206,7 @@ class TopicClassifierClientTest {
             exchange.close()
         }
         val port = server.address.port
-        val safeClient = SafeOutboundClient(skipSsrfCheck = true)
+        val safeClient = SafeOutboundClient()
         val client = ExternalTopicClassifierClient(
             client = safeClient,
             endpointUrl = "http://127.0.0.1:$port/classify",

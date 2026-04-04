@@ -10,6 +10,7 @@ import java.net.InetSocketAddress
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -32,12 +33,13 @@ class ExternalJudgeIntegrationTest {
     }
 
     private fun clientFor(port: Int, signingSecret: String? = null): ExternalJudgeClient {
-        val safeClient = SafeOutboundClient(skipSsrfCheck = true)
+        val safeClient = SafeOutboundClient()
         return ExternalJudgeClient(
             client = safeClient,
             endpointUrl = "http://127.0.0.1:$port/judge",
             timeoutMs = 5000,
-            signingSecret = signingSecret
+            signingSecret = signingSecret,
+            validateUrl = false
         )
     }
 
@@ -117,18 +119,13 @@ class ExternalJudgeIntegrationTest {
     }
 
     @Test
-    fun `SSRF rejection for private IP at execute time`() {
-        // Use skipSsrfCheck=false (default) and validateUrl=false to bypass init check
-        // but the execute() call still validates
+    fun `SSRF rejection for private IP at construction`() {
         val client = SafeOutboundClient()
-        val judgeClient = ExternalJudgeClient(
-            client = client,
-            endpointUrl = "http://192.168.1.1/judge",
-            validateUrl = false
-        )
-        val result = judgeClient.invoke(JudgeRequest(requestBody = "body"))
-        assertEquals(JudgeDecision.ABSTAIN, result.decision)
-        assertNotNull(result.error)
-        assertTrue("blocked" in result.error!!)
+        assertFailsWith<IllegalArgumentException> {
+            ExternalJudgeClient(
+                client = client,
+                endpointUrl = "http://192.168.1.1/judge"
+            )
+        }
     }
 }

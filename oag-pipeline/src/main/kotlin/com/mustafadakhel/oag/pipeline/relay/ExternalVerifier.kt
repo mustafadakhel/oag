@@ -21,8 +21,18 @@ class ExternalVerifier(
     private val endpointUrl: String,
     private val timeoutMs: Long = DEFAULT_TIMEOUT_MS,
     private val signingSecret: String? = null,
-    private val maxConsecutiveFailures: Int = DEFAULT_MAX_CONSECUTIVE_FAILURES
+    private val maxConsecutiveFailures: Int = DEFAULT_MAX_CONSECUTIVE_FAILURES,
+    validateUrl: Boolean = true
 ) {
+    init {
+        if (validateUrl) {
+            val validation = client.validateTarget(java.net.URI(endpointUrl))
+            require(validation is OutboundResult.Success) {
+                "External verifier endpoint is not reachable: $endpointUrl"
+            }
+        }
+    }
+
     private val consecutiveFailures = AtomicInteger(0)
 
     val circuitOpen: Boolean get() = consecutiveFailures.get() >= maxConsecutiveFailures
