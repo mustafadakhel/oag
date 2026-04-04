@@ -19,6 +19,7 @@ class OagMetrics {
     private val poolMisses = LongAdder()
     private val poolEvictions = LongAdder()
     private val auditDroppedTotal = LongAdder()
+    private val bodyInspectionSkippedTotal = LongAdder()
 
     fun recordRequest(action: String, reasonCode: String, ruleId: String?, tags: List<String>? = null) {
         val tagLabel = tags?.sorted()?.joinToString(",").orEmpty()
@@ -79,6 +80,10 @@ class OagMetrics {
         auditDroppedTotal.increment()
     }
 
+    fun recordBodyInspectionSkipped() {
+        bodyInspectionSkippedTotal.increment()
+    }
+
     fun auditStats(): Map<String, Long> = buildMap<String, Long> {
         requestsTotal.forEach { (key, count) ->
             val action = key.split(LABEL_SEPARATOR, limit = 4)[0]
@@ -125,6 +130,7 @@ class OagMetrics {
         appendCounter(METRIC_POOL_MISSES, "Connection pool misses.", poolMisses.sum())
         appendCounter(METRIC_POOL_EVICTIONS, "Connection pool evictions.", poolEvictions.sum())
         appendCounter(METRIC_AUDIT_DROPPED, "Audit events dropped due to full queue.", auditDroppedTotal.sum())
+        appendCounter(METRIC_BODY_INSPECTION_SKIPPED, "POST/PUT/PATCH requests where body inspection was configured but skipped.", bodyInspectionSkippedTotal.sum())
     }
 
     private fun StringBuilder.appendCounter(name: String, help: String, value: Long) {
@@ -162,6 +168,7 @@ class OagMetrics {
         const val METRIC_POOL_MISSES = "oag_pool_misses_total"
         const val METRIC_POOL_EVICTIONS = "oag_pool_evictions_total"
         const val METRIC_AUDIT_DROPPED = "oag_audit_dropped_total"
+        const val METRIC_BODY_INSPECTION_SKIPPED = "oag_body_inspection_skipped_total"
 
         const val LABEL_ACTION = "action"
         const val LABEL_REASON_CODE = "reason_code"

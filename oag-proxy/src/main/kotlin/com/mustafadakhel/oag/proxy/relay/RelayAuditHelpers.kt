@@ -56,7 +56,7 @@ private fun AuditContentInspection.isNonTrivial(): Boolean =
         streamingPluginDetectorIds != null || streamingPluginFindingCount != null ||
         suppressedFindingCount != null || redactFindingCount != null || logFindingCount != null ||
         injectionEscalating != null || hallucinationScore != null ||
-        externalJudge != null
+        externalJudge != null || bodyInspectionSkipped != null
 
 internal fun buildFinalContentInspection(
     context: RequestPipelineContext,
@@ -75,7 +75,8 @@ internal fun buildFinalContentInspection(
     val redactFindings = context.outputs.getOrNull(FindingRedactionKey)
     val logFindings = context.outputs.getOrNull(FindingAuditKey)
     return AuditContentInspection(
-        bodyInspected = inspectionResult != null,
+        bodyInspected = inspectionResult != null && !inspectionResult.bodyInspectionSkipped,
+        bodyInspectionSkipped = inspectionResult?.bodyInspectionSkipped?.takeIf { it },
         injectionPatternsMatched = inspectionResult?.matchedPatterns?.ifEmpty { null },
         urlEntropyScore = urlExfilResult?.maxEntropy,
         dnsEntropyScore = dnsExfilResult?.maxEntropy,

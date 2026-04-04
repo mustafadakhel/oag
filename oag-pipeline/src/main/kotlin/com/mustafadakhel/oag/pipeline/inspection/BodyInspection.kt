@@ -50,6 +50,7 @@ import com.mustafadakhel.oag.pipeline.relay.readChunkedBody
 
 private const val ESCALATION_BOOST_FACTOR = 1.5
 private const val CHUNKED_SENTINEL = -1L
+private val BODY_CARRYING_METHODS = setOf("POST", "PUT", "PATCH")
 
 private fun buildJudgeCallContext(context: RequestPipelineContext): JudgeCallContext? {
     val bodyText = context.bufferedBodyText ?: return null
@@ -312,6 +313,14 @@ fun checkContentInspectionPhase(
 ): PhaseOutcome<Unit> {
     val bodyText = context.bufferedBodyText ?: run {
         context.debugLog { "content inspection skipped: no buffered body for ${context.target.host}${context.target.path}" }
+        if (context.request.method in BODY_CARRYING_METHODS) {
+            val defaults = policyService.current.defaults
+            if (resolveContentInspection(context.matchedRule, defaults) != null) {
+                context.outputs.put(ContentInspectionPhase, ContentInspectionResult(
+                    decision = null, bodyInspectionSkipped = true
+                ))
+            }
+        }
         return PhaseOutcome.Continue(Unit)
     }
     val defaults = policyService.current.defaults

@@ -15,7 +15,8 @@ data class ContentInspectionResult(
     val matchedPatterns: List<String> = emptyList(),
     val injectionScore: Double? = null,
     val injectionSignals: List<String> = emptyList(),
-    val judge: JudgeResult? = null
+    val judge: JudgeResult? = null,
+    val bodyInspectionSkipped: Boolean = false
 )
 
 data class ExfiltrationCheckResult(

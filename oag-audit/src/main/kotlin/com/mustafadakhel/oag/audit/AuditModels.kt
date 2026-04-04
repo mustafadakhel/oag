@@ -91,6 +91,7 @@ data class AuditError(
 @Serializable
 data class AuditContentInspection(
     @SerialName("body_inspected") val bodyInspected: Boolean = false,
+    @SerialName("body_inspection_skipped") val bodyInspectionSkipped: Boolean? = null,
     @SerialName("injection_patterns_matched") val injectionPatternsMatched: List<String>? = null,
     @SerialName("url_entropy_score") val urlEntropyScore: Double? = null,
     @SerialName("dns_entropy_score") val dnsEntropyScore: Double? = null,
