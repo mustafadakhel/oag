@@ -38,3 +38,13 @@ site/
 
 # OS
 .DS_Store
+
+# Logs and runtime output
+*.ndjson
+*.log
+
+# Keys and secrets
+*.pem
+
+# Java compiled classes
+*.class

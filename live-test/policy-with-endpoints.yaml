@@ -1,0 +1,105 @@
+version: 1
+
+defaults:
+  action: DENY
+  max_body_bytes: 1048576
+  enforce_dns_resolution: false
+  block_dns_exfiltration: true
+  dns_entropy_threshold: 4.0
+
+  url_inspection:
+    max_query_length: 2048
+    max_url_length: 4096
+    block_base64_values: true
+    entropy_threshold: 4.5
+    block_path_traversal: true
+    block_double_encoding: true
+
+  content_inspection:
+    enable_builtin_patterns: true
+
+  injection_scoring:
+    mode: SCORE
+    deny_threshold: 0.2
+    escalation:
+      enabled: true
+      window_size: 5
+      deny_patterns:
+        - sustained_elevation
+        - crescendo
+
+  outbound_credential_detection: true
+
+  data_classification:
+    enable_builtin_patterns: true
+
+  hallucination_check:
+    enabled: true
+    mode: observe
+    deny_threshold: 0.8
+    log_threshold: 0.3
+    impossible_claims: true
+    logprob_analysis: true
+
+  topic_classification:
+    enabled: true
+    endpoint_url: "http://127.0.0.1:19100/classify"
+    denied_topics: ["violence", "illegal_activity"]
+    confidence_threshold: 0.8
+    endpoint_timeout_ms: 3000
+    on_error: deny
+
+  external_judge:
+    enabled: true
+    endpoint_url: "http://127.0.0.1:19100/judge"
+    trigger_mode: always
+    on_error: skip
+    deny_threshold: 0.7
+    timeout_ms: 3000
+
+allow:
+  - id: allow_anthropic
+    host: api.anthropic.com
+
+  - id: allow_openai
+    host: api.openai.com
+
+  - id: allow_httpbin
+    host: httpbin.org
+    methods: [GET, POST, PUT]
+
+  - id: allow_postman
+    host: postman-echo.com
+    methods: [GET, POST]
+
+  - id: allow_jsonplaceholder
+    host: jsonplaceholder.typicode.com
+    methods: [GET, POST]
+
+  - id: allow_example
+    host: example.com
+    methods: [GET]
+
+deny:
+  - id: block_internal
+    host: "*.internal.corp"
+
+  - id: block_evil
+    host: evil.com
+    tags: [security, blocked]
+
+  - id: block_admin_paths
+    host: "*.example.com"
+    paths:
+      - /admin
+      - /admin/*
+    error_response:
+      status: 451
+      body: "Unavailable For Legal Reasons"
+      content_type: text/plain
+
+  - id: block_sensitive
+    host: "*.example.com"
+    paths:
+      - /api/secrets
+      - /api/keys
