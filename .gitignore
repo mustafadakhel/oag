@@ -39,12 +39,12 @@ site/
 # OS
 .DS_Store
 
+# Private keys
+*.pem
+
 # Logs and runtime output
 *.ndjson
 *.log
-
-# Keys and secrets
-*.pem
 
 # Java compiled classes
 *.class
