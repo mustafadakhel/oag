@@ -85,7 +85,7 @@ class BodyBufferPhase(
 
     override fun enrichAudit(context: RequestPipelineContext) {
         val bufferableLength = resolveBufferableContentLength(context, policyService) ?: return
-        bufferBody(context, bufferableLength)
+        bufferBody(context, bufferableLength, policyService)
     }
 }
 
@@ -226,7 +226,7 @@ fun bufferAndMatchBodyPhase(
     val bufferableLength = resolveBufferableContentLength(context, policyService)
         ?: return PhaseOutcome.Continue(Unit)
 
-    bufferBody(context, bufferableLength)
+    bufferBody(context, bufferableLength, policyService)
     return evaluateBodyMatch(context)
 }
 
@@ -271,11 +271,13 @@ private fun resolveBufferableContentLength(
 
 private fun bufferBody(
     context: RequestPipelineContext,
-    contentLength: Long
+    contentLength: Long,
+    policyService: PolicyService? = null
 ) {
     val clientInput = requireNotNull(context.clientInput) { "clientInput must be set before body buffering phase" }
     val bufferedBody = if (contentLength == CHUNKED_SENTINEL) {
-        val maxBytes = context.matchedRule?.maxBodyBytes ?: DEFAULT_BODY_BUFFER_LIMIT
+        val defaults = policyService?.current?.defaults
+        val maxBytes = context.matchedRule?.maxBodyBytes ?: defaults?.maxBodyBytes ?: DEFAULT_BODY_BUFFER_LIMIT
         readChunkedBody(clientInput, maxBytes) ?: return
     } else {
         bufferRequestBody(clientInput, contentLength)

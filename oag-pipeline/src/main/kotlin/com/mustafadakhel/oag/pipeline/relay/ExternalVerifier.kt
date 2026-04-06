@@ -26,7 +26,7 @@ class ExternalVerifier(
 ) {
     init {
         if (validateUrl) {
-            val validation = client.validateTarget(java.net.URI(endpointUrl))
+            val validation = client.validateTarget(URI(endpointUrl))
             require(validation is OutboundResult.Success) {
                 "External verifier endpoint is not reachable: $endpointUrl"
             }

@@ -73,10 +73,9 @@ class PackageVerifierTest {
         assertTrue(packages.any { it.name == "pandas" })
     }
 
-    // Note: Network-dependent PackageVerifier tests (registry 404, cache behavior)
-    // are not feasible with SafeOutboundClient due to JDK 17+ Host header restriction
-    // in pinToResolvedAddress. The ConcurrentLruMap cache and PackageStatus.NOT_FOUND
-    // handling are tested through the extractPackageNames unit tests above.
+    // Network-dependent PackageVerifier tests (registry 404, cache behavior)
+    // require real HTTP calls to package registries. Cache and NOT_FOUND handling
+    // are tested through the extractPackageNames unit tests above.
 
     @Test
     fun `PackageVerifier accepts mirror configuration`() {
