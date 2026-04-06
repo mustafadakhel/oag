@@ -6,6 +6,27 @@
 
 - Relicense from Business Source License 1.1 to Apache License 2.0
 
+### Security
+
+- Hallucination detection — 7-signal risk scoring for LLM response integrity (impossible claims, URL verification, package verification, logprob analysis, claim contradiction, tool receipt verification, external NLI). Configurable observe/enforce mode
+- Topic classification — deny or allow requests based on topic via external classifier endpoint. Supports denied/allowed topic lists, confidence threshold, circuit breaker
+- External judge — route uncertain-confidence injection decisions to an external judgment endpoint. Supports trigger modes (always, uncertain_only), HMAC signing, circuit breaker
+- Session-aware escalation detection — detect crescendo and sustained-elevation injection patterns across session turns. Configurable window size and deny patterns
+- Schema validation policy model — define JSON Schema constraints for response validation (runtime validation pending library selection)
+- Chunked request body buffering — content inspection now works on `Transfer-Encoding: chunked` requests, not just fixed-length bodies
+
+### Observability
+
+- New audit fields: `hallucination_score`, `hallucination_signals`, `hallucination_mode`, `topic_classification`, `external_judge`, `escalation_pattern`, `escalation_window_scores`, `escalation_window_size`, `body_inspection_skipped`
+- New webhook event types: `hallucination_detected`, `schema_validation_failed`
+- New reason codes: `hallucination_detected`, `topic_denied`, `response_schema_invalid`
+
+### Fixes
+
+- Fix BOM byte in ProxyHandlerTest.kt introduced by license header script
+- Remove DNS pinning from SafeOutboundClient — fixes JDK 17+ Host header restriction
+- Fix chunked body buffering to respect `defaults.max_body_bytes` fallback
+
 ## 0.1.11
 
 ### Performance

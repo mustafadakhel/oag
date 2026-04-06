@@ -128,6 +128,15 @@ secret_scopes:
 - `skip_data_classification`: When `true`, disables data classification for this rule. Cannot be combined with per-rule `data_classification`.
 - `plugin_detection`: Per-rule plugin detection settings. Overrides defaults. See PolicyPluginDetection fields below.
 - `skip_plugin_detection`: When `true`, skips plugin detection for this rule. Mutually exclusive with `plugin_detection`.
+- `hallucination_check`: Per-rule hallucination check override. Same fields as defaults-level `hallucination_check`.
+- `skip_hallucination_check`: When `true`, skips hallucination check for this rule. Mutually exclusive with `hallucination_check`.
+- `topic_classification`: Per-rule topic classification override. Same fields as defaults-level `topic_classification`.
+- `skip_topic_classification`: When `true`, skips topic classification for this rule. Mutually exclusive with `topic_classification`.
+- `schema_validation`: Response schema validation constraints.
+  - `schema`: JSON Schema string to validate response bodies against.
+  - `on_fail`: Action when validation fails: `block` or `pass`.
+  - `extract_path`: RFC 6901 JSON Pointer to extract a sub-element from the response before validation (e.g., `/choices/0/message/content`).
+  - `parse_extracted_json`: When `true`, parse the extracted string as JSON before validating.
 - `finding_suppressions`: Per-rule finding suppression rules. See PolicyFindingSuppression fields below.
 - `response_rewrites`: Optional list of response rewrite operations applied before forwarding the response to the client. Each entry specifies:
   - `action`: One of `REDACT`, `REMOVE_HEADER`, or `SET_HEADER`.
@@ -189,6 +198,10 @@ In addition to `action`, `max_body_bytes`, and `enforce_dns_resolution`, the `de
   - `entropy_weight`: Weight multiplier for Shannon entropy signal (default 0.1).
   - `entropy_baseline`: Entropy level below which no contribution is made (default 4.5).
   - `category_weights`: Optional list of category weight overrides. Each entry has `category` (one of `delimiter_injection`, `instruction_override`, `role_assumption`, `prompt_leaking`, `jailbreak`, `encoding_markers`) and `weight` (non-negative number).
+  - `escalation`: Session-aware escalation detection. Requires `--session`.
+    - `enabled`: Boolean.
+    - `window_size`: Number of recent scored turns to analyze (3-100, default 5).
+    - `deny_patterns`: List of escalation patterns to detect. Values: `sustained_elevation` (all scores above threshold), `crescendo` (strictly increasing scores).
 
 See [security.md](security.md#injection-detection) for detailed configuration guidance.
 
@@ -213,6 +226,18 @@ See [security.md](security.md#ml-classifier-optional) for ML classifier setup an
 
 See [security.md](security.md#data-classification) for built-in pattern details.
 
+- `hallucination_check`: Hallucination detection for LLM response integrity. See [security.md](security.md#hallucination-detection).
+  - `enabled`, `mode` (`observe`/`enforce`), `deny_threshold`, `log_threshold`
+  - Signal toggles: `impossible_claims`, `url_verification`, `package_verification`, `logprob_analysis`, `claim_contradiction`, `tool_receipt_verification`
+  - `signal_weights`: Per-signal weight overrides (nested object with same signal names as fields)
+  - External NLI: `external_endpoint_url`, `external_endpoint_timeout_ms`, `external_endpoint_signing_secret`, `on_timeout` (`allow`/`deny`)
+  - Custom patterns: `impossible_claims_path`, `url_verification_allowlist`, `package_registry_mirror`
+- `topic_classification`: Topic-based request filtering via external classifier. See [security.md](security.md#topic-classification).
+  - `enabled`, `endpoint_url`, `denied_topics` or `allowed_topics` (mutually exclusive)
+  - `confidence_threshold` (0-1), `endpoint_timeout_ms` (max 10000), `signing_secret`, `on_error` (`deny`/`allow`), `max_text_bytes`
+- `external_judge`: External judgment endpoint for uncertain injection decisions. See [security.md](security.md#external-judge).
+  - `enabled`, `endpoint_url`, `signing_secret`, `timeout_ms`
+  - `trigger_mode` (`always`/`uncertain_only`), `on_error` (`deny`/`allow`/`skip`), `deny_threshold` (0-1), `max_response_bytes`
 - `plugin_detection`: Default plugin detection settings applied to all rules. See PolicyPluginDetection fields below.
 - `finding_suppressions`: Default finding suppression rules. See PolicyFindingSuppression fields below.
 

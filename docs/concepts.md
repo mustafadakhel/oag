@@ -19,7 +19,7 @@ OAG is not a sandbox and does not own the compute plane.
 | **Policy Engine** | Parse/validate policies (YAML/JSON), evaluate requests deterministically, produce decisions with reason codes. Supports bundles with Ed25519 signatures. |
 | **Egress Proxy** | HTTP/HTTPS forward proxy with CONNECT, TLS MITM, WebSocket relay, connection pooling, circuit breaker. |
 | **Secret Materializer** | Detect placeholder tokens in headers, inject real secrets for allowed destinations, emit redaction-safe events. |
-| **Content Inspector** | Scan request/response bodies for injection patterns, sensitive data, credentials, path traversal. Heuristic + optional ML scoring. |
+| **Content Inspector** | Scan request/response bodies for injection patterns, sensitive data, credentials, path traversal. Heuristic + optional ML scoring. Session-aware escalation detection. Hallucination risk scoring. Topic classification and external judge integration. |
 | **Audit Recorder** | Emit JSONL events with stable schema for every request. Optionally export to OpenTelemetry. |
 
 ### Data Flow

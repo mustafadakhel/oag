@@ -254,16 +254,147 @@ allow:
 
 Denied with `rate_limited` (HTTP 429). Rate limiters reconfigured on policy reload.
 
+## Escalation Detection
+
+Session-aware detection of multi-turn injection campaigns. Requires `--session`.
+
+```yaml
+defaults:
+  injection_scoring:
+    mode: score
+    deny_threshold: 0.3
+    escalation:
+      enabled: true
+      window_size: 5
+      deny_patterns:
+        - sustained_elevation
+        - crescendo
+```
+
+| Pattern | Detects |
+|---|---|
+| `sustained_elevation` | All scores in the window above threshold (persistent low-grade probing) |
+| `crescendo` | Strictly increasing scores across the window (gradual escalation) |
+
+When an escalation pattern is detected, the current request's injection score is boosted by 1.5x. If the boosted score exceeds `deny_threshold`, the request is denied with `injection_detected` and `injection_escalating: true` in the audit.
+
+Audit fields: `injection_escalating`, `escalation_pattern`, `escalation_window_scores`, `escalation_window_size`.
+
+## Hallucination Detection
+
+Multi-signal risk scoring for LLM response integrity. Operates on response bodies in the response inspection pipeline.
+
+```yaml
+defaults:
+  hallucination_check:
+    enabled: true
+    mode: observe
+    deny_threshold: 0.8
+    log_threshold: 0.3
+    impossible_claims: true
+    logprob_analysis: true
+```
+
+### Signals
+
+| Signal | Source | What It Detects |
+|---|---|---|
+| `impossible_claims` | Response body | Nonexistent software versions, hallucinated model names, impossible dates. 210 patterns via Aho-Corasick + regex |
+| `url_verification` | Response body | URLs that return 404 or are unreachable (HEAD request via SSRF-safe client) |
+| `package_verification` | Response body | Package names not found in pip/npm registries |
+| `logprob_analysis` | Response JSON | Low model confidence from logprob values (maps mean logprob to 0-1 risk score) |
+| `claim_contradiction` | Session history | Claims that contradict previous responses in the same session (URLs, version strings, numeric assertions) |
+| `tool_receipt_verification` | Session history | LLM claims that don't match cached tool response data |
+| `external_nli` | External endpoint | Score from an external NLI verification service |
+
+### Modes
+
+- `observe` — record findings in audit, never block. Use for monitoring before enforcing.
+- `enforce` — block requests when the aggregated hallucination score exceeds `deny_threshold`. Denied with `hallucination_detected`.
+
+### Session-Aware Signals
+
+`claim_contradiction` and `tool_receipt_verification` require `--session`. Claims from responses flagged by other signals are excluded from the cache to prevent cache poisoning.
+
+## Topic Classification
+
+Deny or allow requests based on the topic of the user's message, determined by an external classifier.
+
+```yaml
+defaults:
+  topic_classification:
+    enabled: true
+    endpoint_url: "https://classifier.example.com/api"
+    denied_topics: ["violence", "illegal_activity"]
+    confidence_threshold: 0.8
+    on_error: deny
+```
+
+### How It Works
+
+1. OAG extracts the last user message from chat-format JSON bodies (`messages[].role == "user"`). Falls back to the full body if not chat format.
+2. Sends `{"text": "...", "topics": [...]}` to the classifier endpoint.
+3. Classifier returns `{"topic": "violence", "confidence": 0.95}`.
+4. If the topic matches a denied topic (case-insensitive) with confidence above threshold, the request is denied with `topic_denied`.
+
+### Topic Modes
+
+- `denied_topics` — deny if the classified topic is in the list.
+- `allowed_topics` — deny if the classified topic is NOT in the list.
+
+These are mutually exclusive.
+
+### Error Handling
+
+- `on_error: deny` — block the request if the classifier fails or times out.
+- `on_error: allow` — allow the request through on classifier failure.
+
+Per-rule: `topic_classification: {...}` to override, or `skip_topic_classification: true` to bypass.
+
+Audit field: `topic_classification` with `topic`, `confidence`, `action`, `endpoint_latency_ms`, `error`.
+
+## External Judge
+
+Route uncertain-confidence injection decisions to an external judgment endpoint for additional analysis.
+
+```yaml
+defaults:
+  external_judge:
+    enabled: true
+    endpoint_url: "https://judge.example.com/api"
+    trigger_mode: uncertain_only
+    on_error: skip
+    deny_threshold: 0.7
+```
+
+### How It Works
+
+1. OAG runs its heuristic injection scorer first.
+2. In `uncertain_only` mode, the judge is only invoked when the heuristic produces no decision. In `always` mode, it runs on every request.
+3. OAG sends `{"request_body": "...", "host": "...", "path": "...", "method": "...", "injection_score": 0.4}` with HMAC-SHA256 signing.
+4. Judge returns `{"score": 0.85, "decision": "deny", "reason": "suspicious content"}`.
+5. If the judge score exceeds `deny_threshold` or the decision is `"deny"`, the request is blocked.
+
+### Error Handling
+
+- `on_error: deny` — block the request if the judge fails.
+- `on_error: allow` — allow the request through on judge failure.
+- `on_error: skip` — proceed with the heuristic result only.
+
+Audit field: `content_inspection.external_judge` with `score`, `decision`, `source`, `latency_ms`, `reason`, `error`.
+
 ## Session Tracking
 
 When `--session` is set, OAG tracks per-session state:
 
 - **Request timestamps** in a 60-second sliding window, per session and per host (used to derive velocity; not persistent counts)
 - **Body hashes** (SHA-256 prefix, last 64 requests)
-- **Rolling injection score** from heuristic scoring
+- **Dense scored turns** — every turn's injection score with turn index, used for escalation detection
+- **Claim fingerprints** — URLs, version strings, and numeric assertions from responses, used for contradiction detection
+- **Tool response excerpts** — cached tool response data keyed by request path + method
 - **Request velocity** (RPS derived from the sliding window, per session and per host)
 
-Useful for detecting: multi-request injection campaigns, replay attacks (repeated body hashes), velocity anomalies.
+Useful for detecting: multi-request injection campaigns, replay attacks (repeated body hashes), velocity anomalies, escalation patterns, claim contradictions.
 
 ## WebSocket Inspection
 
@@ -330,3 +461,6 @@ All reason codes emitted by OAG:
 | `plugin_detected` | Plugin detector triggered denial |
 | `response_plugin_detected` | Response plugin detector triggered denial |
 | `agent_profile_denied` | Agent profile blocked the request |
+| `hallucination_detected` | Hallucination risk score exceeded threshold |
+| `topic_denied` | Request topic matched a denied topic |
+| `response_schema_invalid` | Response body failed schema validation |
