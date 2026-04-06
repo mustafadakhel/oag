@@ -1,1 +1,0 @@
-Python 3.12 introduced several performance improvements including the new perf profiling support and comprehension inlining optimizations.

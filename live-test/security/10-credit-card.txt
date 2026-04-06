@@ -1,5 +1,0 @@
-Payment information:
-Card number: 4111111111111111
-Expiry: 12/28
-CVV: 123
-Please process this payment.
