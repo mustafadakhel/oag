@@ -3,7 +3,7 @@ package com.mustafadakhel.oag.pipeline.inspection
 import com.mustafadakhel.oag.PipelineStage
 import com.mustafadakhel.oag.inspection.DnsLabel
 import com.mustafadakhel.oag.inspection.Finding
-import com.mustafadakhel.oag.inspection.FindingSeverity
+import com.mustafadakhel.oag.FindingSeverity
 import com.mustafadakhel.oag.inspection.HeaderEntry
 import com.mustafadakhel.oag.inspection.Headers
 import com.mustafadakhel.oag.inspection.InspectableArtifact

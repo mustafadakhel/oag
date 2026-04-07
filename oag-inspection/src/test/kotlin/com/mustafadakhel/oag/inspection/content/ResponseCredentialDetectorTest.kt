@@ -1,6 +1,6 @@
 package com.mustafadakhel.oag.inspection.content
 
-import com.mustafadakhel.oag.inspection.FindingType
+import com.mustafadakhel.oag.FindingType
 import com.mustafadakhel.oag.inspection.InspectionContext
 import com.mustafadakhel.oag.inspection.RecommendedAction
 import com.mustafadakhel.oag.inspection.ResponseTextBody

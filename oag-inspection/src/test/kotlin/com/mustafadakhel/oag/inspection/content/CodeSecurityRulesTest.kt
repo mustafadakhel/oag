@@ -1,6 +1,6 @@
 package com.mustafadakhel.oag.inspection.content
 
-import com.mustafadakhel.oag.inspection.FindingSeverity
+import com.mustafadakhel.oag.FindingSeverity
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

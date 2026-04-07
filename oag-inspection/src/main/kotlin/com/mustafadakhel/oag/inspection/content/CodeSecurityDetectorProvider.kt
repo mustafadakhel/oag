@@ -1,6 +1,6 @@
 package com.mustafadakhel.oag.inspection.content
 
-import com.mustafadakhel.oag.inspection.FindingType
+import com.mustafadakhel.oag.FindingType
 import com.mustafadakhel.oag.inspection.ResponseTextBody
 import com.mustafadakhel.oag.inspection.spi.DetectorProvider
 import com.mustafadakhel.oag.inspection.spi.DetectorRegistration

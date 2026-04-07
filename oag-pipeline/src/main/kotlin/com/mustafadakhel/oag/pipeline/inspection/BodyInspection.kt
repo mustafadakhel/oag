@@ -6,8 +6,8 @@ import com.mustafadakhel.oag.audit.AuditExternalJudge
 import com.mustafadakhel.oag.inspection.EvidenceKey
 import com.mustafadakhel.oag.inspection.Finding
 import com.mustafadakhel.oag.inspection.FindingLocation
-import com.mustafadakhel.oag.inspection.FindingSeverity
-import com.mustafadakhel.oag.inspection.FindingType
+import com.mustafadakhel.oag.FindingSeverity
+import com.mustafadakhel.oag.FindingType
 import com.mustafadakhel.oag.inspection.RecommendedAction
 import com.mustafadakhel.oag.inspection.injection.InjectionClassifier
 import com.mustafadakhel.oag.inspection.content.detectStructuredPayload

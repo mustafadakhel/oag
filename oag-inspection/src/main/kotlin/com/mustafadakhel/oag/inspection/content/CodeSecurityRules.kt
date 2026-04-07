@@ -1,6 +1,6 @@
 package com.mustafadakhel.oag.inspection.content
 
-import com.mustafadakhel.oag.inspection.FindingSeverity
+import com.mustafadakhel.oag.FindingSeverity
 import com.mustafadakhel.oag.inspection.RecommendedAction
 
 data class CodeSecurityRule(

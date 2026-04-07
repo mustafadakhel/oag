@@ -1,7 +1,7 @@
 package com.mustafadakhel.oag.inspection
 
-import com.mustafadakhel.oag.FindingSeverityLabels
-import com.mustafadakhel.oag.FindingTypeLabels
+import com.mustafadakhel.oag.FindingSeverity
+import com.mustafadakhel.oag.FindingType
 import com.mustafadakhel.oag.label
 
 import kotlin.test.Test
@@ -49,21 +49,5 @@ class FindingTest {
         assertEquals("medium", FindingSeverity.MEDIUM.label())
         assertEquals("high", FindingSeverity.HIGH.label())
         assertEquals("critical", FindingSeverity.CRITICAL.label())
-    }
-
-    @Test
-    fun `FindingSeverity entries match FindingSeverityLabels valid set`() {
-        assertEquals(
-            FindingSeverity.entries.map { it.label() }.toSet(),
-            FindingSeverityLabels.valid
-        )
-    }
-
-    @Test
-    fun `FindingType entries match FindingTypeLabels valid set`() {
-        assertEquals(
-            FindingType.entries.map { it.label() }.toSet(),
-            FindingTypeLabels.valid
-        )
     }
 }

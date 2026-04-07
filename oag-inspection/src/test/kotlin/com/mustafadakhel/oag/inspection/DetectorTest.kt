@@ -1,5 +1,7 @@
 package com.mustafadakhel.oag.inspection
 
+import com.mustafadakhel.oag.FindingSeverity
+import com.mustafadakhel.oag.FindingType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

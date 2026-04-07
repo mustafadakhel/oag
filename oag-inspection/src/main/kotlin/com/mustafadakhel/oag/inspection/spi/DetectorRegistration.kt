@@ -1,7 +1,7 @@
 package com.mustafadakhel.oag.inspection.spi
 
 import com.mustafadakhel.oag.inspection.Detector
-import com.mustafadakhel.oag.inspection.FindingType
+import com.mustafadakhel.oag.FindingType
 import com.mustafadakhel.oag.inspection.InspectableArtifact
 
 data class DetectorRegistration<T : InspectableArtifact>(

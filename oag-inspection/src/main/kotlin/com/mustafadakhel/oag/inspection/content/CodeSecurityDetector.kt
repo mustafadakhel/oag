@@ -5,7 +5,7 @@ import com.mustafadakhel.oag.inspection.Detector
 import com.mustafadakhel.oag.inspection.EvidenceKey
 import com.mustafadakhel.oag.inspection.Finding
 import com.mustafadakhel.oag.inspection.FindingLocation
-import com.mustafadakhel.oag.inspection.FindingType
+import com.mustafadakhel.oag.FindingType
 import com.mustafadakhel.oag.inspection.InspectionContext
 import com.mustafadakhel.oag.inspection.ResponseTextBody
 

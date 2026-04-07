@@ -1,16 +1,11 @@
 package com.mustafadakhel.oag
 
 object FindingSeverityLabels {
-    val valid: Set<String> = setOf("low", "medium", "high", "critical")
+    val valid: Set<String> = FindingSeverity.entries.map { it.label() }.toSet()
 }
 
 object FindingTypeLabels {
-    val valid: Set<String> = setOf(
-        "prompt_injection", "credential", "pii", "dns_exfiltration",
-        "url_exfiltration", "path_traversal", "structured_payload",
-        "body_match", "redirect_target", "custom", "hallucination",
-        "code_vulnerability"
-    )
+    val valid: Set<String> = FindingType.entries.map { it.label() }.toSet()
 }
 
 object WebhookEventLabels {
