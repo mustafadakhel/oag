@@ -105,6 +105,16 @@ class CodeSecurityRulesTest {
     }
 
     @Test
+    fun `crypto_md5 matches createHash with md5`() {
+        assertTrue(ruleMatches("crypto_md5", """crypto.createHash('md5').update(data).digest('hex')"""))
+    }
+
+    @Test
+    fun `crypto_md5 matches MD5 new`() {
+        assertTrue(ruleMatches("crypto_md5", """MD5.new(data)"""))
+    }
+
+    @Test
     fun `crypto_md5 does not match hashlib sha256`() {
         assertFalse(ruleMatches("crypto_md5", """hashlib.sha256(data)"""))
     }

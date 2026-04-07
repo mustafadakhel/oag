@@ -1,5 +1,6 @@
 package com.mustafadakhel.oag.inspection.content
 
+import com.mustafadakhel.oag.label
 import com.mustafadakhel.oag.inspection.Detector
 import com.mustafadakhel.oag.inspection.EvidenceKey
 import com.mustafadakhel.oag.inspection.Finding
@@ -42,7 +43,12 @@ class CodeSecurityDetector(
 }
 
 private fun matchesRule(rule: CodeSecurityRule, code: String): Boolean {
-    if (!rule.regex.containsMatchIn(code)) return false
+    val matches = try {
+        rule.regex.containsMatchIn(code)
+    } catch (_: StackOverflowError) {
+        return false
+    }
+    if (!matches) return false
     if (rule.id != YAML_UNSAFE_RULE_ID) return true
     return !yamlLoadIsSafe(code, rule.regex)
 }

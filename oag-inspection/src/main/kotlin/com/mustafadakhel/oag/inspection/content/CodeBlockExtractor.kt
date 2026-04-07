@@ -8,9 +8,7 @@ data class ExtractedCodeBlock(
 
 enum class CodeBlockSource {
     MARKDOWN_FENCE,
-    JSON_TOOL_CALL;
-
-    fun label(): String = name.lowercase()
+    JSON_TOOL_CALL
 }
 
 private const val MAX_CODE_SCAN_BODY_SIZE = 524_288
@@ -64,7 +62,7 @@ private fun normalizeLanguage(raw: String): String? {
 }
 
 private fun unescapeJsonString(raw: String): String = raw
-    .replace("\\\"", "\"")
     .replace("\\\\", "\\")
+    .replace("\\\"", "\"")
     .replace("\\n", "\n")
     .replace("\\t", "\t")

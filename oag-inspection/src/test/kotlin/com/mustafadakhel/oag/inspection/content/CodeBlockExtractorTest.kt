@@ -1,5 +1,6 @@
 package com.mustafadakhel.oag.inspection.content
 
+import com.mustafadakhel.oag.label
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

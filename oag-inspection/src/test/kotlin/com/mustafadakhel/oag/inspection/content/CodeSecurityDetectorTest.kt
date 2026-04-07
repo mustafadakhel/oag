@@ -167,5 +167,13 @@ class CodeSecurityDetectorTest {
         assertTrue(findings.any { it.evidence[EvidenceKey.PATTERN] == "deser_yaml_unsafe" })
     }
 
+    @Test
+    fun `yaml mixed safe and unsafe in same block produces finding`() {
+        val input = response("```python\ndata1 = yaml.load(content, Loader=SafeLoader)\ndata2 = yaml.load(content)\n```")
+        val findings = detector.inspect(input, ctx)
+
+        assertTrue(findings.any { it.evidence[EvidenceKey.PATTERN] == "deser_yaml_unsafe" })
+    }
+
     private fun response(text: String) = ResponseTextBody(text, 200, "text/plain")
 }

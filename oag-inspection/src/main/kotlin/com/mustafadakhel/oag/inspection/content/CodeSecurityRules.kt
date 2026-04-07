@@ -76,7 +76,7 @@ object CodeSecurityRules {
         CodeSecurityRule(
             id = "crypto_md5",
             cwe = "CWE-327",
-            regex = Regex("""(?:hashlib\.md5|MD5\.new|new MD5|createHash\([^)]{0,50}md5[^)]{0,50}\))\("""),
+            regex = Regex("""(?:hashlib\.md5\(|MD5\.new\(|new MD5\(|createHash\([^)]{0,50}md5[^)]{0,50}\))"""),
             severity = FindingSeverity.MEDIUM,
             description = "Weak MD5 hash usage"
         )
