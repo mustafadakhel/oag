@@ -21,6 +21,9 @@ object EvidenceKey {
     const val SOURCE = "source"
     const val SCORE = "score"
     const val SIGNALS = "signals"
+    const val CWE = "cwe"
+    const val CODE_BLOCK_SOURCE = "code_block_source"
+    const val LANGUAGE = "language"
 }
 
 sealed interface FindingLocation {

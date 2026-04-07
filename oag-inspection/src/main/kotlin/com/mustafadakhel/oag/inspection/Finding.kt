@@ -20,7 +20,8 @@ enum class FindingType {
     BODY_MATCH,
     REDIRECT_TARGET,
     CUSTOM,
-    HALLUCINATION
+    HALLUCINATION,
+    CODE_VULNERABILITY
 }
 
 enum class FindingSeverity {

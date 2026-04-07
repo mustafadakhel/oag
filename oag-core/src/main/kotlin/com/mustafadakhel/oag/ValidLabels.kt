@@ -8,7 +8,8 @@ object FindingTypeLabels {
     val valid: Set<String> = setOf(
         "prompt_injection", "credential", "pii", "dns_exfiltration",
         "url_exfiltration", "path_traversal", "structured_payload",
-        "body_match", "redirect_target", "custom", "hallucination"
+        "body_match", "redirect_target", "custom", "hallucination",
+        "code_vulnerability"
     )
 }
 
