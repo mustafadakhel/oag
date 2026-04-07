@@ -383,6 +383,58 @@ defaults:
 
 Audit field: `content_inspection.external_judge` with `score`, `decision`, `source`, `latency_ms`, `reason`, `error`.
 
+## Code Security Analysis
+
+Scan LLM-generated code in responses for common vulnerability patterns. Operates on response bodies via the plugin detection pipeline.
+
+```yaml
+defaults:
+  plugin_detection:
+    enabled: true
+    scan_responses: true
+```
+
+No additional configuration is required — the `code-security` detector is registered via SPI and runs automatically when response scanning is enabled.
+
+### Code Extraction
+
+OAG extracts code blocks from response bodies using two strategies:
+
+- **Markdown fences** — `` ```lang ... ``` `` blocks with optional language tags
+- **JSON tool calls** — `code` fields from OpenAI/Anthropic tool_call response formats
+
+Extracted blocks are scanned up to 524 KB per response body.
+
+### Vulnerability Rules
+
+| Rule ID | CWE | Severity | Description |
+|---|---|---|---|
+| `sql_fstring` | CWE-89 | HIGH | Python f-string used in SQL query |
+| `sql_concat_execute` | CWE-89 | HIGH | String concatenation in SQL execute call |
+| `cmd_shell_true` | CWE-78 | HIGH | subprocess call with `shell=True` |
+| `cmd_os_system` | CWE-78 | HIGH | `os.system()` call |
+| `cmd_eval_exec` | CWE-78 | HIGH | `eval()` or `exec()` call |
+| `deser_pickle` | CWE-502 | HIGH | Insecure pickle deserialization |
+| `deser_yaml_unsafe` | CWE-502 | HIGH | `yaml.load()` without SafeLoader |
+| `crypto_md5` | CWE-327 | MEDIUM | Weak MD5 hash usage |
+| `secret_assignment` | CWE-798 | HIGH | Hardcoded secret in variable assignment |
+
+The `deser_yaml_unsafe` rule is context-aware — `yaml.load()` calls with `SafeLoader` or `safe_load` on the same line are not flagged.
+
+### Performance
+
+- **Time budget**: 50 ms per response (configurable). Scanning stops when the budget is exhausted.
+- **ReDoS protection**: All regex patterns are validated against adversarial input at construction time.
+
+### Audit
+
+Findings surface in audit events via existing plugin infrastructure:
+
+- `response_plugin_detector_ids: ["code-security"]`
+- `response_plugin_finding_count: <N>`
+
+Each finding includes evidence: `pattern` (rule ID), `cwe`, `code_block_source` (`markdown_fence` or `json_tool_call`), and `language` (when detected).
+
 ## Session Tracking
 
 When `--session` is set, OAG tracks per-session state:
