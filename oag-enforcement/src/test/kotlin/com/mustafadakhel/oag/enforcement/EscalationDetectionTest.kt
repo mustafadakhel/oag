@@ -104,4 +104,121 @@ class EscalationDetectionTest {
         assertFalse(result.detected)
         assertNull(result.pattern)
     }
+
+    // --- SAW_TOOTH_PROBING ---
+
+    private fun turnsAt(vararg pairs: Pair<Long, Double>) =
+        pairs.map { (idx, score) -> ScoredTurn(turnIndex = idx, score = score) }
+
+    private val sawToothConfig = EscalationConfig(
+        enabled = true,
+        windowSize = 3,
+        denyPatterns = setOf(EscalationPattern.SAW_TOOTH_PROBING)
+    )
+
+    private val periodicConfig = EscalationConfig(
+        enabled = true,
+        windowSize = 7,
+        denyPatterns = setOf(EscalationPattern.PERIODIC_TESTING)
+    )
+
+    @Test
+    fun `saw tooth detected with high-low-high pattern`() {
+        val result = detectEscalationPatterns(turns(0.5, 0.1, 0.5), sawToothConfig)
+        assertTrue(result.detected)
+        assertEquals(EscalationPattern.SAW_TOOTH_PROBING, result.pattern)
+    }
+
+    @Test
+    fun `saw tooth detected with longer oscillation`() {
+        val config = sawToothConfig.copy(windowSize = 5)
+        val result = detectEscalationPatterns(turns(0.5, 0.1, 0.5, 0.1, 0.5), config)
+        assertTrue(result.detected)
+        assertEquals(EscalationPattern.SAW_TOOTH_PROBING, result.pattern)
+    }
+
+    @Test
+    fun `saw tooth not detected when all high`() {
+        val result = detectEscalationPatterns(turns(0.5, 0.6, 0.7), sawToothConfig)
+        assertFalse(result.detected)
+    }
+
+    @Test
+    fun `saw tooth not detected when all low`() {
+        val result = detectEscalationPatterns(turns(0.1, 0.2, 0.1), sawToothConfig)
+        assertFalse(result.detected)
+    }
+
+    @Test
+    fun `saw tooth not detected with only one above threshold`() {
+        val result = detectEscalationPatterns(turns(0.5, 0.1, 0.1), sawToothConfig)
+        assertFalse(result.detected)
+    }
+
+    @Test
+    fun `saw tooth not detected with fewer than 3 scores`() {
+        val config = sawToothConfig.copy(windowSize = 2)
+        val result = detectEscalationPatterns(turns(0.5, 0.1), config)
+        assertFalse(result.detected)
+    }
+
+    @Test
+    fun `saw tooth not detected when scores are exactly at threshold`() {
+        val result = detectEscalationPatterns(turns(0.3, 0.1, 0.3), sawToothConfig)
+        assertFalse(result.detected)
+    }
+
+    // --- PERIODIC_TESTING ---
+
+    @Test
+    fun `periodic testing detected at regular intervals`() {
+        val result = detectEscalationPatterns(
+            turnsAt(1L to 0.5, 2L to 0.1, 3L to 0.1, 4L to 0.5, 5L to 0.1, 6L to 0.1, 7L to 0.5),
+            periodicConfig
+        )
+        assertTrue(result.detected)
+        assertEquals(EscalationPattern.PERIODIC_TESTING, result.pattern)
+    }
+
+    @Test
+    fun `periodic testing not detected with irregular intervals`() {
+        val config = periodicConfig.copy(windowSize = 3)
+        val result = detectEscalationPatterns(
+            turnsAt(1L to 0.5, 5L to 0.5, 6L to 0.5),
+            config
+        )
+        assertFalse(result.detected)
+    }
+
+    @Test
+    fun `periodic testing not detected with fewer than 3 high turns`() {
+        val config = periodicConfig.copy(windowSize = 3)
+        val result = detectEscalationPatterns(
+            turnsAt(1L to 0.5, 4L to 0.5, 5L to 0.1),
+            config
+        )
+        assertFalse(result.detected)
+    }
+
+    @Test
+    fun `periodic testing not detected when interval is 1`() {
+        val config = periodicConfig.copy(windowSize = 3)
+        val result = detectEscalationPatterns(
+            turnsAt(1L to 0.5, 2L to 0.5, 3L to 0.5),
+            config
+        )
+        assertFalse(result.detected)
+    }
+
+    @Test
+    fun `periodic testing detected at minimum interval boundary`() {
+        // Mean interval exactly 2.0 (= MIN_PERIODIC_INTERVAL) should fire
+        val config = periodicConfig.copy(windowSize = 5)
+        val result = detectEscalationPatterns(
+            turnsAt(1L to 0.5, 2L to 0.1, 3L to 0.5, 4L to 0.1, 5L to 0.5),
+            config
+        )
+        assertTrue(result.detected)
+        assertEquals(EscalationPattern.PERIODIC_TESTING, result.pattern)
+    }
 }

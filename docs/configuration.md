@@ -147,7 +147,7 @@ secret_scopes:
   - `replacement`: Replacement string for `REDACT` action.
   - `header`: Header name for `REMOVE_HEADER` and `SET_HEADER` actions.
   - `value`: Header value for `SET_HEADER` action.
-- `webhook_events`: Optional list of webhook event types this rule should trigger notifications for. Omit or empty list to notify on all events. Valid values: `circuit_open`, `reload_failed`, `injection_detected`, `credential_detected`, `integrity_drift`, `admin_denied`.
+- `webhook_events`: Optional list of webhook event types this rule should trigger notifications for. Omit or empty list to notify on all events. Valid values: `circuit_open`, `reload_failed`, `injection_detected`, `credential_detected`, `integrity_drift`, `admin_denied`, `hallucination_detected`, `schema_validation_failed`.
 - `payload_match`: Optional list of structured payload matching constraints. Allows matching based on protocol-level semantics rather than raw body content. Each entry specifies:
   - `protocol`: Protocol identifier (e.g., `jsonrpc`, `graphql`).
   - `method`: Method name to match (protocol-specific).
@@ -201,7 +201,7 @@ In addition to `action`, `max_body_bytes`, and `enforce_dns_resolution`, the `de
   - `escalation`: Session-aware escalation detection. Requires `--session`.
     - `enabled`: Boolean.
     - `window_size`: Number of recent scored turns to analyze (3-100, default 5).
-    - `deny_patterns`: List of escalation patterns to detect. Values: `sustained_elevation` (all scores above threshold), `crescendo` (strictly increasing scores).
+    - `deny_patterns`: List of escalation patterns to detect. Values: `sustained_elevation` (all scores above threshold), `crescendo` (strictly increasing scores), `saw_tooth_probing` (alternating above/below threshold), `periodic_testing` (high scores at regular intervals).
 
 See [security.md](security.md#injection-detection) for detailed configuration guidance.
 

@@ -35,12 +35,12 @@ It is not a sandbox and does not own the compute plane.
 - Redirect chain validation with policy re-evaluation per hop.
 
 **Audit and observability**
-- Structured audit logging (JSONL) with 8 event types and 32 reason codes.
+- Structured audit logging (JSONL) with 8 event types and 36 reason codes.
 - Rotating log files (size-based and time-based) with optional GZIP compression.
 - OpenTelemetry integration: audit log export and distributed tracing with W3C `traceparent` propagation.
 - 10 Prometheus metrics (counters, gauges, histograms).
 - 7 admin API endpoints (health, metrics, reload, pool, policy, audit, tasks).
-- Webhook notifications for 6 event types with HMAC signing and retry.
+- Webhook notifications for 8 event types with HMAC signing and retry.
 
 **CLI**
 - 11 commands: run, doctor, explain, test, hash, bundle, verify, lint, simulate, diff, help.

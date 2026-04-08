@@ -2,5 +2,7 @@ package com.mustafadakhel.oag
 
 enum class EscalationPattern {
     SUSTAINED_ELEVATION,
-    CRESCENDO
+    CRESCENDO,
+    SAW_TOOTH_PROBING,
+    PERIODIC_TESTING
 }

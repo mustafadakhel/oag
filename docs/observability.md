@@ -23,7 +23,7 @@ OAG emits structured JSONL audit logs, Prometheus metrics, and optional OpenTele
 
 **Optional:** `trace.{trace_id,span_id,trace_flags}` (from W3C `traceparent`), `redirect_chain`, `content_inspection.*`, `request_id`, `retry_count`, `tags`, `header_rewrites`, `request.resolved_ips`, `web_socket_session.*`, `agent_profile`, `token_usage.{prompt_tokens,completion_tokens,total_tokens}` (LLM token usage extracted from response body, present when OAG detects token usage fields in JSON API responses), `dry_run_override` (boolean, present when the request was allowed despite a deny decision because `--dry-run` is enabled), `phase_timings.{policy_evaluation_ms,dns_resolution_ms,upstream_connect_ms,request_relay_ms,response_relay_ms,secret_materialization_ms,total_ms}` (per-phase execution times in milliseconds, only non-zero phases are included), `response_rewrites` (list of response body/header modifications applied; each entry has `action` (redact/remove_header/set_header), and optional `pattern`, `header`, `redaction_count`), `structured_payload.{protocol,method,operation_name,operation_type}` (detected structured API payload information; `protocol` is jsonrpc/graphql), `topic_classification.{topic,confidence,action,endpoint_latency_ms,error}` (topic classification result when configured).
 
-**Content inspection fields:** `body_inspected`, `body_inspection_skipped` (true when inspection was configured but body was absent on POST/PUT/PATCH), `injection_score`, `injection_signals`, `injection_escalating`, `escalation_pattern`, `escalation_window_scores`, `escalation_window_size`, `credentials_detected`, `data_classification_matches`, `data_classification_categories`, `hallucination_score`, `hallucination_signals` (list of `{name, score, details}`), `hallucination_mode`, `external_judge.{score,decision,source,latency_ms,reason,error}`.
+**Content inspection fields:** `body_inspected`, `injection_score`, `injection_signals`, `injection_escalating`, `escalation_pattern`, `escalation_window_scores`, `escalation_window_size`, `credentials_detected`, `data_classification_matches`, `data_classification_categories`, `hallucination_score`, `hallucination_signals` (list of `{name, score, details}`), `hallucination_mode`, `external_judge.{score,decision,source,latency_ms,reason,error}`.
 
 ### Tool Event Fields
 
@@ -127,7 +127,7 @@ oag run --webhook-url https://hooks.example.com/oag \
   --webhook-signing-secret mysecret
 ```
 
-Events: `circuit_open`, `reload_failed`, `injection_detected`, `credential_detected`, `integrity_drift`, `admin_denied`. JSON payload with `eventType`, `timestamp`, `data`. Optional HMAC-SHA256 signature header (`x-oag-signature: sha256=<hex>`). Best-effort, non-blocking delivery.
+Events: `circuit_open`, `reload_failed`, `injection_detected`, `credential_detected`, `integrity_drift`, `admin_denied`, `hallucination_detected`, `schema_validation_failed`. JSON payload with `eventType`, `timestamp`, `data`. Optional HMAC-SHA256 signature header (`x-oag-signature: sha256=<hex>`). Best-effort, non-blocking delivery.
 
 ## Integrity Checking
 

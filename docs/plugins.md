@@ -262,18 +262,23 @@ All fields are optional within a suppression entry, but at least one of `detecto
 
 OAG's core detectors (injection, credentials, data classification) run through dedicated pipeline phases and are not loaded as plugins.
 
-### Code Security Detector (SPI-registered)
+### Code Security Detector (bundled)
 
-OAG ships a built-in `CodeSecurityDetectorProvider` registered via `META-INF/services`. It loads automatically through ServiceLoader — no `--plugin-provider` flag needed.
+OAG ships a built-in `CodeSecurityDetectorProvider` that scans LLM-generated code for common vulnerability patterns. Register it via the `--plugin-provider` flag:
+
+```bash
+oag run --policy policy.yaml \
+  --plugin-provider com.mustafadakhel.oag.inspection.content.CodeSecurityDetectorProvider
+```
 
 - **Provider ID:** `oag-code-security`
 - **Detector ID:** `code-security`
 - **Artifact type:** `ResponseTextBody`
 - **Finding type:** `CODE_VULNERABILITY`
 
-Extracts code blocks from LLM responses (markdown fences and JSON tool calls), then scans for common vulnerability patterns: SQL injection (CWE-89), command injection (CWE-78), insecure deserialization (CWE-502), weak cryptography (CWE-327), and hardcoded secrets (CWE-798).
+Detects: SQL injection (CWE-89), command injection (CWE-78), insecure deserialization (CWE-502), weak cryptography (CWE-327), and hardcoded secrets (CWE-798). Extracts code blocks from markdown fences and JSON tool calls.
 
-Enable with:
+Policy configuration:
 
 ```yaml
 defaults:

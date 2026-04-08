@@ -343,7 +343,7 @@ fun checkContentInspectionPhase(
         if (boostedScore >= denyThreshold) {
             context.debugLog { "injection escalation detected: boosted score ${"%.3f".format(boostedScore)} >= threshold $denyThreshold" }
             inspectionResult.copy(
-                decision = PolicyDecision(action = PolicyAction.DENY, ruleId = null, reasonCode = ReasonCode.INJECTION_DETECTED),
+                decision = PolicyDecision(action = PolicyAction.DENY, ruleId = null, reasonCode = ReasonCode.INJECTION_ESCALATION_DETECTED),
                 injectionScore = boostedScore,
                 injectionSignals = inspectionResult.injectionSignals + "escalation_boost"
             )

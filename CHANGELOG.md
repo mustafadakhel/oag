@@ -11,15 +11,16 @@
 - Hallucination detection — 7-signal risk scoring for LLM response integrity (impossible claims, URL verification, package verification, logprob analysis, claim contradiction, tool receipt verification, external NLI). Configurable observe/enforce mode
 - Topic classification — deny or allow requests based on topic via external classifier endpoint. Supports denied/allowed topic lists, confidence threshold, circuit breaker
 - External judge — route uncertain-confidence injection decisions to an external judgment endpoint. Supports trigger modes (always, uncertain_only), HMAC signing, circuit breaker
-- Session-aware escalation detection — detect crescendo and sustained-elevation injection patterns across session turns. Configurable window size and deny patterns
+- Session-aware escalation detection — detect 4 injection patterns across session turns: sustained elevation, crescendo, saw-tooth probing, periodic testing. Configurable window size and deny patterns. Dedicated `injection_escalation_detected` reason code when boost causes denial
+- Code security analysis — bundled plugin detector for LLM-generated code vulnerabilities. 9 rules across 5 CWE categories (SQL injection, command injection, insecure deserialization, weak crypto, hardcoded secrets). Extracts code from markdown fences and JSON tool calls
 - Schema validation policy model — define JSON Schema constraints for response validation (runtime validation pending library selection)
 - Chunked request body buffering — content inspection now works on `Transfer-Encoding: chunked` requests, not just fixed-length bodies
 
 ### Observability
 
-- New audit fields: `hallucination_score`, `hallucination_signals`, `hallucination_mode`, `topic_classification`, `external_judge`, `escalation_pattern`, `escalation_window_scores`, `escalation_window_size`, `body_inspection_skipped`
+- New audit fields: `hallucination_score`, `hallucination_signals`, `hallucination_mode`, `topic_classification`, `external_judge`, `escalation_pattern`, `escalation_window_scores`, `escalation_window_size`
 - New webhook event types: `hallucination_detected`, `schema_validation_failed`
-- New reason codes: `hallucination_detected`, `topic_denied`, `response_schema_invalid`
+- New reason codes: `hallucination_detected`, `topic_denied`, `response_schema_invalid`, `injection_escalation_detected`
 
 ### Fixes
 

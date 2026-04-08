@@ -34,6 +34,7 @@ enum class ReasonCode(val category: ReasonCategory) {
     CIRCUIT_OPEN(ReasonCategory.NETWORK),
 
     INJECTION_DETECTED(ReasonCategory.SECURITY),
+    INJECTION_ESCALATION_DETECTED(ReasonCategory.SECURITY),
     RESPONSE_INJECTION_DETECTED(ReasonCategory.SECURITY),
     URL_EXFILTRATION_BLOCKED(ReasonCategory.SECURITY),
     DNS_EXFILTRATION_BLOCKED(ReasonCategory.SECURITY),

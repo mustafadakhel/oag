@@ -19,7 +19,7 @@ OAG is a portable egress policy engine, secret materializer, and audit recorder 
 | **Source** | ~19K lines Kotlin (main) + ~26K lines (tests) |
 | **CLI commands** | 11 (run, doctor, explain, test, hash, bundle, verify, lint, simulate, diff, help) |
 | **CLI flags** | 77 configuration options |
-| **Reason codes** | 32 distinct deny/allow reasons in audit events |
+| **Reason codes** | 36 distinct deny/allow reasons in audit events |
 | **Injection categories** | 6 built-in pattern families + custom patterns + optional ML classifier |
 | **Audit event types** | 8 (startup, request, tool, policy_reload, circuit_breaker, policy_fetch, admin_access, integrity_check) |
 | **Admin endpoints** | 7 (healthz, metrics, reload, pool, policy, audit, tasks) |
