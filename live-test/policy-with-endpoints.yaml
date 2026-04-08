@@ -72,6 +72,12 @@ allow:
     host: postman-echo.com
     methods: [GET, POST]
 
+  - id: allow_mock_llm
+    host: "127.0.0.1:19100"
+    paths:
+      - /mock-llm
+    methods: [POST]
+
   - id: allow_jsonplaceholder
     host: jsonplaceholder.typicode.com
     methods: [GET, POST]
