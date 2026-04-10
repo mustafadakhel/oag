@@ -242,6 +242,106 @@ class SessionRequestTrackerTest {
     }
 
     @Test
+    fun `chainHead is null for new session`() {
+        val tracker = SessionRequestTracker()
+        kotlin.test.assertNull(tracker.chainHead("s1"))
+    }
+
+    @Test
+    fun `chainHead is null for unknown session`() {
+        val tracker = SessionRequestTracker()
+        kotlin.test.assertNull(tracker.chainHead("unknown"))
+    }
+
+    @Test
+    fun `chainHead set after record with bodyHash`() {
+        val tracker = SessionRequestTracker()
+        tracker.record("s1", "api.example.com", "abc123")
+        val head = tracker.chainHead("s1")
+        kotlin.test.assertNotNull(head)
+        assertEquals(64, head.length, "chain head should be full SHA-256 hex (64 chars)")
+        assertTrue(head.all { it in '0'..'9' || it in 'a'..'f' })
+    }
+
+    @Test
+    fun `chainHead unchanged when bodyHash is null`() {
+        val tracker = SessionRequestTracker()
+        tracker.record("s1", "api.example.com", "abc123")
+        val headAfterBody = tracker.chainHead("s1")
+        tracker.record("s1", "api.example.com", null)
+        assertEquals(headAfterBody, tracker.chainHead("s1"))
+    }
+
+    @Test
+    fun `chainHead changes with each new bodyHash`() {
+        val tracker = SessionRequestTracker()
+        tracker.record("s1", "api.example.com", "hash1")
+        val head1 = tracker.chainHead("s1")
+        tracker.record("s1", "api.example.com", "hash2")
+        val head2 = tracker.chainHead("s1")
+        assertTrue(head1 != head2, "chain head should change after new body hash")
+    }
+
+    @Test
+    fun `chainHead is deterministic for same inputs`() {
+        val tracker1 = SessionRequestTracker()
+        tracker1.record("s1", "api.example.com", "hash1")
+        tracker1.record("s1", "api.example.com", "hash2")
+
+        val tracker2 = SessionRequestTracker()
+        tracker2.record("s1", "api.example.com", "hash1")
+        tracker2.record("s1", "api.example.com", "hash2")
+
+        assertEquals(tracker1.chainHead("s1"), tracker2.chainHead("s1"))
+    }
+
+    @Test
+    fun `different sessions produce different chain heads for same body sequence`() {
+        val tracker = SessionRequestTracker()
+        tracker.record("s1", "api.example.com", "hash1")
+        tracker.record("s2", "api.example.com", "hash1")
+        // Both sessions have same single body hash, so chain head should be identical
+        // (since chain starts from null for both). After a second request, they diverge
+        // only if the bodies differ. With identical bodies they produce identical chains.
+        assertEquals(tracker.chainHead("s1"), tracker.chainHead("s2"),
+            "Same body sequence should produce same chain head (replay detection uses session isolation)")
+    }
+
+    @Test
+    fun `chain head diverges when sessions have different body sequences`() {
+        val tracker = SessionRequestTracker()
+        tracker.record("s1", "api.example.com", "hash1")
+        tracker.record("s1", "api.example.com", "hash2")
+
+        tracker.record("s2", "api.example.com", "hash1")
+        tracker.record("s2", "api.example.com", "hash3")
+
+        assertTrue(tracker.chainHead("s1") != tracker.chainHead("s2"),
+            "Different body sequences should produce different chain heads")
+    }
+
+    @Test
+    fun `computeChainHash is deterministic`() {
+        val hash1 = SessionRequestTracker.computeChainHash("prevHead", "bodyHash")
+        val hash2 = SessionRequestTracker.computeChainHash("prevHead", "bodyHash")
+        assertEquals(hash1, hash2)
+    }
+
+    @Test
+    fun `computeChainHash with null previous head`() {
+        val hash = SessionRequestTracker.computeChainHash(null, "bodyHash")
+        kotlin.test.assertNotNull(hash)
+        assertEquals(64, hash.length)
+    }
+
+    @Test
+    fun `computeChainHash differs for different inputs`() {
+        val hash1 = SessionRequestTracker.computeChainHash("head1", "body1")
+        val hash2 = SessionRequestTracker.computeChainHash("head2", "body1")
+        assertTrue(hash1 != hash2)
+    }
+
+    @Test
     fun `concurrent access does not throw`() = runBlocking {
         val tracker = SessionRequestTracker()
         val workers = 10

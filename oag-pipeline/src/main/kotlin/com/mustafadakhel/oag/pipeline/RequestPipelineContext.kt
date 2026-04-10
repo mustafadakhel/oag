@@ -207,7 +207,8 @@ private fun buildAuditEvent(
                 endpointLatencyMs = it.endpointLatencyMs,
                 error = it.error
             )
-        }
+        },
+        conversationChainHead = context.outputs.getOrNull(ChainHeadKey)?.value
     )
 }
 

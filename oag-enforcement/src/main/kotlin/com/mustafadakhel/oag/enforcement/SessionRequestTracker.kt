@@ -55,6 +55,7 @@ class SessionRequestTracker(
             if (state.bodyHashes.size > maxBodyHashHistory) {
                 state.bodyHashes.removeFirst()
             }
+            state.chainHead = computeChainHash(state.chainHead, bodyHash)
         }
         state.requestTimestamps.add(nowMs)
         state.hostTimestamps.getOrPut(host) { ArrayDeque() }.add(nowMs)
@@ -146,6 +147,10 @@ class SessionRequestTracker(
         state.toolResponseExcerpts.toMap()
     }
 
+    fun chainHead(sessionId: String): String? = sessions.withLock {
+        this[sessionId]?.chainHead
+    }
+
     fun clear() = sessions.clear()
 
     private fun pruneTimestamps(state: SessionState, nowMs: Long) {
@@ -172,6 +177,7 @@ class SessionRequestTracker(
         val hostTimestamps = mutableMapOf<String, ArrayDeque<Long>>()
         val claimFingerprints = mutableMapOf<String, String>()
         val toolResponseExcerpts = mutableMapOf<String, String>()
+        var chainHead: String? = null
     }
 
     companion object {
@@ -188,6 +194,12 @@ class SessionRequestTracker(
             val digest = MessageDigest.getInstance(CryptoConstants.SHA_256)
             val hash = digest.digest(body)
             return hash.toHexString().take(BODY_HASH_PREFIX_LENGTH)
+        }
+
+        internal fun computeChainHash(previousChainHead: String?, bodyHash: String): String {
+            val input = (previousChainHead.orEmpty() + bodyHash).toByteArray(Charsets.UTF_8)
+            val digest = MessageDigest.getInstance(CryptoConstants.SHA_256)
+            return digest.digest(input).toHexString()
         }
     }
 }

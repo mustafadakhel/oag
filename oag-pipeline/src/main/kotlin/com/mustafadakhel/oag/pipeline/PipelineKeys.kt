@@ -66,3 +66,8 @@ data class ConnectFallbackData(
 )
 
 object ConnectFallbackKey : PhaseKey<ConnectFallbackData>
+
+@JvmInline
+value class ChainHead(val value: String)
+
+object ChainHeadKey : PhaseKey<ChainHead>

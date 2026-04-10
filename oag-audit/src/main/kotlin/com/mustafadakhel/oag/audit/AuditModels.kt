@@ -218,7 +218,8 @@ data class AuditEvent(
     @SerialName("phase_timings") val phaseTimings: Map<String, Double>? = null,
     @SerialName("dry_run_override") val dryRunOverride: Boolean? = null,
     @SerialName("token_usage") val tokenUsage: AuditTokenUsage? = null,
-    @SerialName("topic_classification") val topicClassification: AuditTopicClassification? = null
+    @SerialName("topic_classification") val topicClassification: AuditTopicClassification? = null,
+    @SerialName("conversation_chain_head") val conversationChainHead: String? = null
 ) : AuditLogEvent {
     override fun withTimestamp(timestamp: String) = copy(timestamp = timestamp)
 }

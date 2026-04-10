@@ -31,6 +31,8 @@ import com.mustafadakhel.oag.http.HttpConstants
 import com.mustafadakhel.oag.pipeline.AuditExtras
 import com.mustafadakhel.oag.pipeline.BodyBufferKey
 import com.mustafadakhel.oag.pipeline.BodyBufferResult
+import com.mustafadakhel.oag.pipeline.ChainHead
+import com.mustafadakhel.oag.pipeline.ChainHeadKey
 import com.mustafadakhel.oag.pipeline.DnsExfiltrationKey
 import com.mustafadakhel.oag.pipeline.HttpStatus
 import com.mustafadakhel.oag.pipeline.PhaseKey
@@ -312,8 +314,15 @@ fun checkContentInspectionPhase(
 
     val sessionId = context.config.params.sessionId
     val injScore = inspectionResult.injectionScore
-    if (sessionId != null && sessionRequestTracker != null && injScore != null) {
-        sessionRequestTracker.recordInjectionScore(sessionId, injScore)
+    if (sessionId != null && sessionRequestTracker != null) {
+        if (injScore != null) {
+            sessionRequestTracker.recordInjectionScore(sessionId, injScore)
+        }
+        val bodyHash = SessionRequestTracker.bodyHash(bodyText.toByteArray())
+        sessionRequestTracker.record(sessionId, context.target.host, bodyHash)
+        sessionRequestTracker.chainHead(sessionId)?.let { head ->
+            context.outputs.put(ChainHeadKey, ChainHead(head))
+        }
     }
 
     val trend = if (sessionId != null && sessionRequestTracker != null) {
